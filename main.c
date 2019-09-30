@@ -7,64 +7,37 @@
 #include "commandLibrary.h"
 #include "signalHandler.h"
 
-
+// GLOBALS
 Command commands[100];
-char shellPrompt[100] = ">";
+char* tokens[1000];
 int validCommand = 0;
+Screen screen;
 
+// This method checks for builtin commands. Can probably be put in its own header/c file
 // Returns 1 if the command is "exit"
-int CheckCommand(char* command)
-{
-    if(strcmp(command,EXIT_COMMAND) == 0)
+int CheckCommand(Command* commands)
+{ 
+    int ret = 0;
+    if(strcmp(tokens[commands[0].first],EXIT_COMMAND) == 0)
     {
-        return 1;
+        printf("\nBye!\n");
+        ret = 1;
+    }
+    else if(strcmp(tokens[commands[0].first],PROMPT_COMMAND) == 0)
+    {
+       ChangeShellPrompt(&screen,commands[0].argv[1]); //Get the first argument after the prompt command
     }
 
-    return 0;
+
+    return ret;
 
 }
 
-int main()
+// This just prints the list of commands once they are tokenized, use for debugging
+// Currently crashes :)
+void DEBUG_printCommands(int cms,Command* commands)
 {
-
-  SplashScreen();
-  SetUpSignal(&validCommand);
-
-  int timeToQuit = 0;
-
-  while(timeToQuit == 0)
-  {
-     validCommand = 1;
-     char line[1000];
-     char* tokens[1000];
-
-     printf("%s",shellPrompt);
-     fgets(line,1000,stdin);
-
-     //This will remove the '\n' at the end, replacing it with a '\0' 
-     line[strcspn(line,"\n")] = '\0';
-
-     // If a signal was caught, validCommand will be set to 0
-     // Also, check that user did not enter an empty line
-     if(!validCommand || line[0] == '\n' || line[0] == '\0')
-     {
-        printf("\n");
-        fflush(stdin);
-     	continue;
-     }     
-   
-     // Split into tokens, spearated by empty space
-     tokenise(line,tokens," ");
-
-     // First thing, check if the command was a quit requests
-     timeToQuit = CheckCommand(tokens[commands[0].first]);
-     
-     if(!timeToQuit)
-     {      
-
-       Command commands[10];
-       int cms =  separateCommands(tokens, commands);
-       for(int i=0; i< cms; i++)
+     for(int i=0; i< cms; i++)
        {
          printf("Command:\n");
 	 printf("\tFirst: %s\n",tokens[commands[i].first]);
@@ -81,8 +54,53 @@ int main()
            if(commands[i].stdout_file != NULL)
              printf("\tStdout: %s\n",commands[i].stdout_file);
          }
-       }     
-      }
+       }    
+
+
+}
+
+int main()
+{
+  InitializeScreen(&screen);
+  SplashScreen();
+  SetUpSignal(&validCommand);
+
+  int timeToQuit = 0;
+
+  while(timeToQuit == 0)
+  {
+     validCommand = 1; //Will be modified by the signal handler in case we catch a signal
+     char line[1000]; //Input buffer
+
+     printf("%s",screen.shellPrompt);
+     fgets(line,1000,stdin);
+
+     //This will remove the '\n' at the end, replacing it with a '\0' 
+     line[strcspn(line,"\n")] = '\0';
+
+     // If a signal was caught, validCommand will be set to 0
+     // Also, check that user did not enter an empty line
+     if(!validCommand || line[0] == '\n' || line[0] == '\0')
+     {
+        printf("\n");
+        fflush(stdin);
+     	continue;
+     }
+
+     // Split into tokens, spearated by empty space
+     tokenise(line,tokens," ");
+
+     Command commands[10];
+     int cms =  separateCommands(tokens, commands);
+
+     // First thing, check if the command was a built in command ("prompt", "exit" and so on)
+     timeToQuit = CheckCommand(commands);
+
+     if(!timeToQuit)
+     {
+	//DEBUG_printCommands(cms,commands);
+       
+     }
 
   }
 
