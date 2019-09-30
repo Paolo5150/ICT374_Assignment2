@@ -15,7 +15,6 @@ char shellPrompt[100] = ">";
 // Returns 1 if the command is "exit"
 int CheckCommand(char* command)
 {
-    printf("Checking command %s",command);
     if(strcmp(command,EXIT_COMMAND) == 0)
     {
         return 1;
@@ -48,7 +47,7 @@ int main()
       int cms =  separateCommands(tokens, commands);
 
 
-      for(int i=0; i< cms; i++)
+     /* for(int i=0; i< cms; i++)
       {
          printf("Command:\n");
          printf("\tFirst: %s\n",tokens[commands[i].first]);
@@ -63,7 +62,7 @@ int main()
                 printf("\tStdin: %s\n",commands[i].stdin_file);
          if(commands[i].stdout_file != NULL)
                 printf("\tStdout: %s\n",commands[i].stdout_file);
-      }
+      }*/
 
 
       timeToQuit = CheckCommand(tokens[commands[0].first]);
