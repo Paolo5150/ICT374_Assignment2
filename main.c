@@ -4,7 +4,7 @@
 #include <string.h>
 #include "command.h"
 #include "screen.h"
-#include "commandLibrary.h"
+#include "builtinCommands.h"
 #include "signalHandler.h"
 
 // GLOBALS
@@ -13,25 +13,7 @@ char* tokens[1000];
 int validCommand = 0;
 Screen screen;
 
-// This method checks for builtin commands. Can probably be put in its own header/c file
-// Returns 1 if the command is "exit"
-int CheckCommand(Command* commands)
-{ 
-    int ret = 0;
-    if(strcmp(tokens[commands[0].first],EXIT_COMMAND) == 0)
-    {
-        printf("\nBye!\n");
-        ret = 1;
-    }
-    else if(strcmp(tokens[commands[0].first],PROMPT_COMMAND) == 0)
-    {
-       ChangeShellPrompt(&screen,commands[0].argv[1]); //Get the first argument after the prompt command
-    }
 
-
-    return ret;
-
-}
 
 // This just prints the list of commands once they are tokenized, use for debugging
 // Currently crashes :)
@@ -94,7 +76,7 @@ int main()
      int cms =  separateCommands(tokens, commands);
 
      // First thing, check if the command was a built in command ("prompt", "exit" and so on)
-     timeToQuit = CheckCommand(commands);
+     timeToQuit = CheckBuiltinCommand(tokens, commands,&screen);
 
      if(!timeToQuit)
      {

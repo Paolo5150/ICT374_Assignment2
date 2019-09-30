@@ -2,8 +2,8 @@
 # the filename must be either Makefile or makefile
 
 
-main:   main.o command.o screen.o signalHandler.o
-	gcc main.o command.o screen.o signalHandler.o -o main
+main:   main.o command.o screen.o signalHandler.o builtinCommands.o
+	gcc main.o command.o screen.o signalHandler.o builtinCommands.o -o main
 
 main.o: main.c
 	gcc -c main.c
@@ -16,6 +16,9 @@ screen.o: screen.h screen.c
 
 signalHandler.o: signalHandler.h signalHandler.c
 	gcc -c signalHandler.c
+
+builtinCommands.o: builtinCommands.h builtinCommands.c
+	gcc -c builtinCommands.c
 
 clean: 
 	rm *.o

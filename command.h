@@ -1,4 +1,5 @@
-
+#ifndef COMMAND_H
+#define COMMAND_H
 
 #define MAX_NUM_COMMANDS  1000
 
@@ -22,3 +23,5 @@ typedef struct CommandStruct Command;  // command type
 int separateCommands(char *token[], Command command[]);
 
 int tokenise (char* inputLine, char *tk[], char* delimiter);
+
+#endif

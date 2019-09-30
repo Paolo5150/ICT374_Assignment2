@@ -1,6 +1,6 @@
 #include "screen.h"
 
-char shellPrompt[100] = ">";
+char shellPrompt[100];
 
 void SplashScreen()
 {
@@ -16,7 +16,8 @@ void SplashScreen()
 
 void InitializeScreen(Screen* screenStruct)
 {
-  (*screenStruct).shellPrompt[0] = '>';
+  (*screenStruct).shellPrompt[0] = '%';
+  (*screenStruct).shellPrompt[1] = '>';
 }
 
 void ChangeShellPrompt(Screen* screenStruct,char* newPrompt)
