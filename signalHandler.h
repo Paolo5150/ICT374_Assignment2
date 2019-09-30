@@ -2,6 +2,8 @@
 #define SIGNALHANDLER_H
 
 void CatchSignal(int signalNumber);
-void SetUpSignal();
+void SetUpSignal(int* validCommand);
+
+int* setValidCommand;
 
 #endif
