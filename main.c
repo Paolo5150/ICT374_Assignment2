@@ -6,6 +6,7 @@
 #include "screen.h"
 #include "builtinCommands.h"
 #include "signalHandler.h"
+#include "executoner.h"
 
 #define MAX_COMMANDS 100
 
@@ -27,17 +28,18 @@ void DEBUG_printCommands(int cms,Command* commands)
 	 printf("\tFirst: %s\n",tokens[commands[i].first]);
 	 printf("\tLast: %s\n",tokens[commands[i].last]);
 	 printf("\tArgs: %d\n",commands[i].argc);
-	 for(int a=1; a< commands[i].argc; a++)
+	 for(int a=0; a< commands[i].argc; a++)
 	 {
-	   printf("\t\t%s\n",commands[i].argv[a]);	 
-	   printf("\tSeparator: %s\n",commands[i].sep);
+	   printf("\t\t%s\n",commands[i].argv[a]); 
+
+         }
+         printf("\tSeparator: %s\n",commands[i].sep);
 
            if(commands[i].stdin_file != NULL)
 	     printf("\tStdin: %s\n",commands[i].stdin_file);
 
            if(commands[i].stdout_file != NULL)
              printf("\tStdout: %s\n",commands[i].stdout_file);
-         }
        }    
 
 
@@ -84,10 +86,19 @@ int main()
 
      if(wasBuiltIn == -1)
      {
-	DEBUG_printCommands(cms,commands);
+	//DEBUG_printCommands(cms,commands);
+        
+        for(int i=0; i< cms; i++)
+        {
+          // Check for pipe
+         if(strcmp(commands[i].sep ,PIPESEP) == 0)
+          {
+            if(ExecutePipedCommand(tokens,&commands[i], &commands[i+1]) !=0)
+		printf("Failed to execude piped command!\n");
+          }
 
-
-       
+        }
+    
      }
 
   }

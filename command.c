@@ -11,7 +11,7 @@
 int separator(char *token)
 {
     int i=0;
-    char *commandSeparators[] = {pipeSep, conSep, seqSep, NULL};
+    char *commandSeparators[] = {PIPESEP, CONSEP, SEQSEP, NULL};
 
     while (commandSeparators[i] != NULL) {
         if (strcmp(commandSeparators[i], token) == 0) {
@@ -107,7 +107,7 @@ int separateCommands(char *token[], Command command[],int maxCommands)
 
      // check last token, add ";" if necessary
      if (!separator(token[nTokens-1])) {
-          token[nTokens] = seqSep;
+          token[nTokens] = SEQSEP;
           ++nTokens;
      }
 
@@ -128,7 +128,7 @@ int separateCommands(char *token[], Command command[],int maxCommands)
      }
 
      // check the last token of the last command
-     if (strcmp(token[last], pipeSep) == 0) { // last token is pipe separator
+     if (strcmp(token[last], PIPESEP) == 0) { // last token is pipe separator
           return -4;
      }
 
