@@ -13,6 +13,7 @@
 
 int IsPath(char* line, char** args);
 int ExecuteSingleCommand(char* tokens[],Command* cmd);
+int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd);
 int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd);
 
 

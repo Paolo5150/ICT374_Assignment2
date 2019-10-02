@@ -93,12 +93,13 @@ int main()
         
         for(int i=0; i< cms; i++)
         {
-          // Check for pipe
+          // Check for pipe, need to revisit
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
           {
             ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
-
           }
+         else
+             ExecuteProcessedSingleCommand(tokens,&commands[i]);
 
         }
     

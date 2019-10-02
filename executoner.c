@@ -67,12 +67,42 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
 
 int IsPath(char* line, char** args)
 {
+  char* tks[10];
+  int t = tokenise(line,tks,"/");
+  printf("t: %d\n",t);
+  
+  if(t == 2)
+    return 0;
+  else
+  {
+    
+    return 1;
+  }
+
 
 
 }
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
 {
-  execvp(tokens[cmd->first] ,cmd->argv);
+
+  if(IsPath(tokens[cmd->first] ,cmd->argv))
+  {
+
+    //execv (tokens[cmd->first], cmd->argv);
+  }
+  else
+  {
+    execvp(tokens[cmd->first] ,cmd->argv);
+  }
+    
+}
+
+int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
+{
+  //Spawn process
+  // If command has '&', remove stdout to screen, parent won't wait
+  // If command has '>' or '<', change process stdout or stdin
+
 }
 
 
