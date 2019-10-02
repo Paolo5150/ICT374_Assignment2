@@ -33,8 +33,10 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
       close(p[0]);  
       //printf("\nPID %d, executing exec2, first %s, arg %s\n",getpid(),tokens[rightCmd->first],rightCmd->argv[0]);
       execlp(tokens[rightCmd->first],tokens[rightCmd->first] ,rightCmd->argv[1],(char *)0);
-      printf("\nCould not execute command 2.."); 
-      return -1; 
+      printf("\nCould not execute command 2..\n"); 
+        close(p[0]);
+      close(p[1]);
+      exit(0); 
 
     }
     else
@@ -59,8 +61,8 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
     close(p[1]);   
  
     execlp(tokens[leftCmd->first],tokens[leftCmd->first] ,leftCmd->argv[1],(char *)0);
-    printf("\nCould not execute command 1.."); 
-    
+    printf("\nCould not execute command 1..\n"); 
+     exit(0);
   }
   return 0;
 }

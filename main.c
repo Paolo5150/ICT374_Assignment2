@@ -56,20 +56,22 @@ int main()
   while(timeToQuit != 1)
   {
      validCommand = 1; //Will be modified by the signal handler in case we catch a signal
-     char line[1000]; //Input buffer
+     char line[1000] = ""; //Input buffer
 
      printf("%s",screen.shellPrompt);
-     fgets(line,1000,stdin);
+
+    if (fgets(line, 1000, stdin)) {
+      while (!strchr(line, '\n') && fgets(line, 1000, stdin)) { }
+     }
 
      //This will remove the '\n' at the end, replacing it with a '\0' 
      line[strcspn(line,"\n")] = '\0';
 
      // If a signal was caught, validCommand will be set to 0
      // Also, check that user did not enter an empty line
-     if(!validCommand || line[0] == '\n' || line[0] == '\0')
+     if(!validCommand || line[0] == '\n' || line[0] == '\0' || strcmp(line,"") == 0)
      {
         printf("\n");
-        fflush(stdin);
      	continue;
      }
 
@@ -93,8 +95,8 @@ int main()
           // Check for pipe
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
           {
-            if(ExecutePipedCommand(tokens,&commands[i], &commands[i+1]) !=0)
-		printf("Failed to execude piped command!\n");
+            ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
+
           }
 
         }
