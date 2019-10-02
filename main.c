@@ -9,6 +9,7 @@
 #include "executoner.h"
 
 #define MAX_COMMANDS 100
+#define BUF_SIZE 1000
 
 // GLOBALS
 Command commands[MAX_COMMANDS];
@@ -56,12 +57,12 @@ int main()
   while(timeToQuit != 1)
   {
      validCommand = 1; //Will be modified by the signal handler in case we catch a signal
-     char line[1000] = ""; //Input buffer
+     char line[BUF_SIZE] = ""; //Input buffer
 
      printf("%s",screen.shellPrompt);
 
-    if (fgets(line, 1000, stdin)) {
-      while (!strchr(line, '\n') && fgets(line, 1000, stdin)) { }
+    if (fgets(line, BUF_SIZE, stdin)) {
+      while (!strchr(line, '\n') && fgets(line, BUF_SIZE, stdin)) { }
      }
 
      //This will remove the '\n' at the end, replacing it with a '\0' 

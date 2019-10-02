@@ -32,10 +32,8 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
       dup2(p[0],STDIN_FILENO);
       close(p[0]);  
       //printf("\nPID %d, executing exec2, first %s, arg %s\n",getpid(),tokens[rightCmd->first],rightCmd->argv[0]);
-      execlp(tokens[rightCmd->first],tokens[rightCmd->first] ,rightCmd->argv[1],(char *)0);
+      ExecuteSingleCommand(tokens,rightCmd);
       printf("\nCould not execute command 2..\n"); 
-        close(p[0]);
-      close(p[1]);
       exit(0); 
 
     }
@@ -60,9 +58,37 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
     dup2(p[1],STDOUT_FILENO);
     close(p[1]);   
  
-    execlp(tokens[leftCmd->first],tokens[leftCmd->first] ,leftCmd->argv[1],(char *)0);
+    ExecuteSingleCommand(tokens,leftCmd);
     printf("\nCould not execute command 1..\n"); 
      exit(0);
   }
   return 0;
 }
+
+int IsPath(char* line, char** args)
+{
+
+
+}
+int ExecuteSingleCommand(char* tokens[],Command* cmd)
+{
+  execvp(tokens[cmd->first] ,cmd->argv);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
