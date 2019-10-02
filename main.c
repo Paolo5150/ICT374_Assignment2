@@ -7,8 +7,10 @@
 #include "builtinCommands.h"
 #include "signalHandler.h"
 
+#define MAX_COMMANDS 100
+
 // GLOBALS
-Command commands[100];
+Command commands[MAX_COMMANDS];
 char* tokens[1000];
 int validCommand = 0;
 Screen screen;
@@ -49,7 +51,7 @@ int main()
 
   int timeToQuit = 0;
 
-  while(timeToQuit == 0)
+  while(timeToQuit != 1)
   {
      validCommand = 1; //Will be modified by the signal handler in case we catch a signal
      char line[1000]; //Input buffer
@@ -72,15 +74,18 @@ int main()
      // Split into tokens, spearated by empty space
      tokenise(line,tokens," ");
 
-     Command commands[10];
-     int cms =  separateCommands(tokens, commands);
+     Command commands[MAX_COMMANDS];
+     int cms =  separateCommands(tokens, commands,MAX_COMMANDS);
 
      // First thing, check if the command was a built in command ("prompt", "exit" and so on)
-     timeToQuit = CheckBuiltinCommand(tokens, commands,&screen);
+     int wasBuiltIn = CheckBuiltinCommand(tokens, commands,&screen);
+     timeToQuit = wasBuiltIn;
 
-     if(!timeToQuit)
+     if(wasBuiltIn == -1)
      {
-	//DEBUG_printCommands(cms,commands);
+	DEBUG_printCommands(cms,commands);
+
+
        
      }
 

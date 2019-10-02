@@ -2,10 +2,12 @@
 
 
 // This method checks for builtin commands. Can probably be put in its own header/c file
-// Returns 1 if the command is "exit"
+// Returns 1 if the command is one of the builtin commands
+// Returns 1 if the command is the builtin commands EXIT
+// Resutns -1 otherwise
 int CheckBuiltinCommand(char* tokens[],Command* commands, Screen* screen)
 { 
-    int ret = 0;
+    int ret = -1;
     if(strcmp(tokens[commands[0].first],EXIT_COMMAND) == 0)
     {
         printf("\nBye!\n");
@@ -17,6 +19,8 @@ int CheckBuiltinCommand(char* tokens[],Command* commands, Screen* screen)
          printf("No argument provided!\n");
        else
        ChangeShellPrompt(screen,commands[0].argv[1]); //Get the first argument after the prompt command
+       
+       ret = 0;
     }
     else if(strcmp(tokens[commands[0].first],PWD_COMMAND) == 0)
     {
@@ -24,7 +28,9 @@ int CheckBuiltinCommand(char* tokens[],Command* commands, Screen* screen)
       if (getcwd(buffer, sizeof(buffer)) == NULL)
         printf("Error while runnung %s\n",PWD_COMMAND);
       else
-        printf("%s\n", buffer);       
+        printf("%s\n", buffer); 
+
+      ret = 0;      
     }
     else if(strcmp(tokens[commands[0].first],CHANGEDIR_COMMAND) == 0)
     {
@@ -37,7 +43,7 @@ int CheckBuiltinCommand(char* tokens[],Command* commands, Screen* screen)
            printf("Error while changing directory (argument may be invalid)\n");
          }
        }
-         
+       ret = 0; 
     }
 
 

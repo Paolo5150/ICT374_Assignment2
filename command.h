@@ -20,7 +20,7 @@ struct CommandStruct {
 
 typedef struct CommandStruct Command;  // command type
 
-int separateCommands(char *token[], Command command[]);
+int separateCommands(char *token[], Command command[], int maxCommands);
 
 int tokenise (char* inputLine, char *tk[], char* delimiter);
 

@@ -78,8 +78,17 @@ void buildCommandArgumentArray(char *token[], Command *cp)
      cp->argv[k] = NULL;
 }
 
-int separateCommands(char *token[], Command command[])
+int separateCommands(char *token[], Command command[],int maxCommands)
 {
+    
+     // Initialize commands params to null
+     for(int j=0; j<maxCommands;j++)
+     {
+       command[j].sep = NULL;
+       command[j].argv = NULL;
+       command[j].stdin_file = NULL;
+       command[j].stdout_file = NULL;
+     }
      int i;
      int nTokens;
 
