@@ -78,6 +78,7 @@ int main()
      int cms =  separateCommands(tokens, commands,MAX_COMMANDS);
 
      // First thing, check if the command was a built in command ("prompt", "exit" and so on)
+     // See "builtinCommands.h" to see what the method returns
      int wasBuiltIn = CheckBuiltinCommand(tokens, commands,&screen);
      timeToQuit = wasBuiltIn;
 
