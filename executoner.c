@@ -123,6 +123,31 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   //Spawn process
   // If command has '&', remove stdout to screen, parent won't wait
   // If command has '>' or '<', change process stdout or stdin
+ if ((pid=fork()) < 0)
+  {
+    printf("Error while forking in pipe execution\n");
+    return -1;
+  }
+  
+  // Parent
+  if (pid > 0)
+  {
+    //if '&', don't wait for child process
+    //if ';' wait and then return for next command
+  }
+  // Child
+  else if(pid == 0)
+  {
+    // Check if cmd->separator is '&'
+       // If it is, detached stdout (no print to screen) - I'll get up to this point
+       // However, if here is a '>', stdout shout go to file (filename should be argument index 1) so exec will output there
+       // Also check for '<', which means read from that file
+
+   // If separator is ';', i guess execute as normal (and of course check for '<' '>')
+
+   
+  }
+  
 
 }
 
