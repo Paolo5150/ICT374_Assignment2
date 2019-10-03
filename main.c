@@ -51,7 +51,12 @@ int main()
   InitializeScreen(&screen);
   SplashScreen();
   SetUpSignal(&validCommand);
-
+  struct sigaction childDone;
+		
+    childDone.sa_flags = 0;
+    childDone.sa_flags |= SA_SIGINFO;
+    childDone.sa_sigaction = ChildHandler;
+    sigaction(SIGCHLD,&childDone,NULL);
   int timeToQuit = 0;
 
   while(timeToQuit != 1)
@@ -96,12 +101,13 @@ int main()
           // Check for pipe, need to revisit
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
           {
-            ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
+           // ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
           }
          else
              ExecuteProcessedSingleCommand(tokens,&commands[i]);
 
         }
+      //printf("For loop ended! %d\n",getpid());
     
      }
 

@@ -16,5 +16,6 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd);
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd);
 int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd);
 
+void ChildHandler(int n, siginfo_t* info, void* idk);
 
 #endif
