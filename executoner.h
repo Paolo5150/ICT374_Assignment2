@@ -11,7 +11,7 @@
 #include "screen.h"
 #include "command.h"
 
-int IsPath(char* line, char** args);
+int IsPath(char* line, char** args, int argc, char** newArgs);
 int ExecuteSingleCommand(char* tokens[],Command* cmd);
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd);
 int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd);
