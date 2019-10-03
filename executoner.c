@@ -119,6 +119,7 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
 
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
 {
+  int pid;
 
   //Spawn process
   // If command has '&', remove stdout to screen, parent won't wait
