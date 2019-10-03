@@ -6,8 +6,10 @@
 #include "screen.h"
 #include "builtinCommands.h"
 #include "signalHandler.h"
+#include "executoner.h"
 
 #define MAX_COMMANDS 100
+#define BUF_SIZE 1000
 
 // GLOBALS
 Command commands[MAX_COMMANDS];
@@ -27,17 +29,18 @@ void DEBUG_printCommands(int cms,Command* commands)
 	 printf("\tFirst: %s\n",tokens[commands[i].first]);
 	 printf("\tLast: %s\n",tokens[commands[i].last]);
 	 printf("\tArgs: %d\n",commands[i].argc);
-	 for(int a=1; a< commands[i].argc; a++)
+	 for(int a=0; a< commands[i].argc; a++)
 	 {
-	   printf("\t\t%s\n",commands[i].argv[a]);	 
-	   printf("\tSeparator: %s\n",commands[i].sep);
+	   printf("\t\t%s\n",commands[i].argv[a]); 
+
+         }
+         printf("\tSeparator: %s\n",commands[i].sep);
 
            if(commands[i].stdin_file != NULL)
 	     printf("\tStdin: %s\n",commands[i].stdin_file);
 
            if(commands[i].stdout_file != NULL)
              printf("\tStdout: %s\n",commands[i].stdout_file);
-         }
        }    
 
 
@@ -54,20 +57,22 @@ int main()
   while(timeToQuit != 1)
   {
      validCommand = 1; //Will be modified by the signal handler in case we catch a signal
-     char line[1000]; //Input buffer
+     char line[BUF_SIZE] = ""; //Input buffer
 
      printf("%s",screen.shellPrompt);
-     fgets(line,1000,stdin);
+
+    if (fgets(line, BUF_SIZE, stdin)) {
+      while (!strchr(line, '\n') && fgets(line, BUF_SIZE, stdin)) { }
+     }
 
      //This will remove the '\n' at the end, replacing it with a '\0' 
      line[strcspn(line,"\n")] = '\0';
 
      // If a signal was caught, validCommand will be set to 0
      // Also, check that user did not enter an empty line
-     if(!validCommand || line[0] == '\n' || line[0] == '\0')
+     if(!validCommand || line[0] == '\n' || line[0] == '\0' || strcmp(line,"") == 0)
      {
         printf("\n");
-        fflush(stdin);
      	continue;
      }
 
@@ -84,10 +89,20 @@ int main()
 
      if(wasBuiltIn == -1)
      {
-	DEBUG_printCommands(cms,commands);
+	//DEBUG_printCommands(cms,commands);
+        
+        for(int i=0; i< cms; i++)
+        {
+          // Check for pipe, need to revisit
+         if(strcmp(commands[i].sep ,PIPESEP) == 0)
+          {
+            ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
+          }
+         else
+             ExecuteProcessedSingleCommand(tokens,&commands[i]);
 
-
-       
+        }
+    
      }
 
   }

@@ -4,9 +4,9 @@
 #define MAX_NUM_COMMANDS  1000
 
 // command separators
-#define pipeSep  "|"                            // pipe separator "|"
-#define conSep   "&"                            // concurrent execution separator "&"
-#define seqSep   ";"                            // sequential execution separator ";"
+#define PIPESEP  "|"                            // pipe separator "|"
+#define CONSEP   "&"                            // concurrent execution separator "&"
+#define SEQSEP   ";"                            // sequential execution separator ";"
 
 struct CommandStruct {
    int first;          // index to the first token in the array "token" of the command
