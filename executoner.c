@@ -65,7 +65,7 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
   return 0;
 }
 
-int IsPath(char* line, char** args,int argc, char** newArgs)
+char** IsPath(char* line, char** args,int argc)
 {
   char cpy[100];
   strncpy(cpy,line,strlen(line)+1);
@@ -73,11 +73,25 @@ int IsPath(char* line, char** args,int argc, char** newArgs)
   int t = tokenise(cpy,tks,"/");
 
   if(t == 2)
-    return 0;
+    return NULL;
   else
   {
+    // This mess below creates a new set of arguments, copied from the command arguments, except that the first argument is the command with no /
+    strncpy(cpy,line,strlen(line)+1);
+    int t = tokenise(cpy,tks,"/");
+    char** newArgs = NULL;
+    newArgs = (char **) realloc(newArgs, sizeof(char *) * argc);
+    newArgs[0] = (char *) realloc(newArgs[0], sizeof(char) * strlen(tks[t-2]));
+    strcpy(newArgs[0],tks[t-2]);
+    int i = 1;
+    for(; i< argc; i++)
+    {
+      newArgs[i] = (char *) realloc(newArgs[i], sizeof(char) * strlen(args[i]));
+      strcpy(newArgs[i],args[i]);
+    }
+    newArgs[i] = NULL;
  
-    return 1;
+    return newArgs;
   }
 
 
@@ -85,40 +99,27 @@ int IsPath(char* line, char** args,int argc, char** newArgs)
 }
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
 {
-  char* newArgs[100];
-  if(IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc,newArgs))
-  {
-    printf("Execv %s args: %s ",tokens[cmd->first],cmd->argv[0]);
-  //  execv (tokens[cmd->first], cmd->argv);
-  }
+
+    char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
+  
+  if(newArgs != NULL)
+  {    
+    execv (tokens[cmd->first], newArgs);
+   // printf("Failed!");
+
+  } 
   else
   {
-   // execvp(tokens[cmd->first] ,cmd->argv);
+    execvp(tokens[cmd->first] ,cmd->argv);
+    printf("Failed!");
   }
+  return 0;
     
 }
 
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
 {
-   char** newArgs = NULL;
-if(IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc,newArgs))
-  {
-    char cpy[100];
-    strncpy(cpy,tokens[cmd->first],strlen(tokens[cmd->first])+1);
-    char* tks[10];
-    int t = tokenise(cpy,tks,"/");
-    newArgs = (char **) realloc(newArgs, sizeof(char *) * cmd->argc);
-    newArgs[0] = (char *) realloc(newArgs[0], sizeof(char) * strlen(tks[t-2]));
-    strcpy(newArgs[0],tks[t-2]);
-    for(int i=1; i< cmd->argc; i++)
-    {
-      newArgs[i] = (char *) realloc(newArgs[i], sizeof(char) * strlen(cmd->argv[i]));
-      strcpy(newArgs[i],cmd->argv[i]);
-    }
-    execv (tokens[cmd->first], newArgs);
-    printf("Failed!");
 
-  }
   //Spawn process
   // If command has '&', remove stdout to screen, parent won't wait
   // If command has '>' or '<', change process stdout or stdin
