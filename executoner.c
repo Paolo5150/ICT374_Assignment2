@@ -111,7 +111,7 @@ char** IsPath(char* line, char** args,int argc)
 
 }
 
-void Redirect(char* tokens[], Command* cmd)
+void Redirect(char* tokens[], Command* cmd, int* oldOut, int* oldIn)
 {
 	for (int i = cmd->first; i <= cmd->last; i++)
 	{
@@ -119,7 +119,7 @@ void Redirect(char* tokens[], Command* cmd)
 		{
 			if (i + 1 == cmd->last)
 			{
-				RedirectOutput(tokens[i+1]);
+				*oldOut = RedirectOutput(tokens[i+1]);
 				break;
 			}
 			else
@@ -134,7 +134,7 @@ void Redirect(char* tokens[], Command* cmd)
 			{
 				if (i + 1 == cmd->last)
 				{
-					RedirectInput(tokens[i+1]);
+					*oldIn = RedirectInput(tokens[i+1]);
 					break;
 				}
 				else
@@ -148,18 +148,31 @@ void Redirect(char* tokens[], Command* cmd)
 	}
 }
 
-void RedirectInput(char* inputFilename)
+int RedirectInput(char* inputFilename)
 {
 	int inFileDesc = open(inputFilename, O_RDONLY | O_CREAT, 0666);
-
+	int origFD = dup(STDIN_FILENO);
 	dup2(inFileDesc, STDIN_FILENO);
+	return origFD;
 }
 
-void RedirectOutput(char* outputFilename)
+void RedirectInputFD(int fd)
+{
+	dup2(fd, STDIN_FILENO);
+}
+
+
+int RedirectOutput(char* outputFilename)
 {
 	int outFileDesc = open(outputFilename, O_WRONLY | O_CREAT, 0666);
-
+	int origFD = dup(STDOUT_FILENO);
 	dup2(outFileDesc, STDOUT_FILENO);
+	return origFD;
+}
+
+void RedirectOutputFD(int fd)
+{
+	dup2(fd, STDOUT_FILENO);
 }
 
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
@@ -168,7 +181,9 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
     char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
 
 	//Redirects output/input if necessary
-	Redirect(tokens, cmd);
+	int out = -1;
+	int in = -1;
+	Redirect(tokens, cmd, &out, &in);
 	
   if(newArgs != NULL)
   {    
