@@ -65,19 +65,22 @@ int main()
      char line[BUF_SIZE] = ""; //Input buffer
 
      printf("%s",screen.shellPrompt);
+    
 
     if (fgets(line, BUF_SIZE, stdin)) {
       while (!strchr(line, '\n') && fgets(line, BUF_SIZE, stdin)) { }
      }
-
+    
      //This will remove the '\n' at the end, replacing it with a '\0' 
      line[strcspn(line,"\n")] = '\0';
-
+      
+ 
+    
      // If a signal was caught, validCommand will be set to 0
      // Also, check that user did not enter an empty line
-     if(!validCommand || line[0] == '\n' || line[0] == '\0' || strcmp(line,"") == 0)
+    if(!validCommand || line[0] == '\n' || line[0] == '\0' || strcmp(line,"") == 0 )
      {
-        printf("\n");
+        //printf("\n");
      	continue;
      }
 
@@ -107,7 +110,7 @@ int main()
              ExecuteProcessedSingleCommand(tokens,&commands[i]);
 
         }
-      //printf("For loop ended! %d\n",getpid());
+     // printf("For loop ended, btw cms were %d\n",cms);
     
      }
 

@@ -5,6 +5,7 @@ int deadChild = 0;
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
   //printf("Got signal %d by %d\n",info->si_signo, info->si_pid); 
+
   deadChild = info->si_pid;
   /*if(info->si_signo == SIGTTOU)
   {
@@ -189,13 +190,15 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
   {    
 	
     execv (tokens[cmd->first], newArgs);
-    printf("Failed!\n");
+    printf("Command not recognized :(\n");
+    exit(0);
 
   } 
   else
   {
     execvp(tokens[cmd->first] ,cmd->argv);
-    printf("Failed!\n");
+    printf("Command not recognized :(\n");
+    exit(0);
   }
   return 0;
     
@@ -222,13 +225,12 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
 
     if(strcmp(cmd->sep,CONSEP) == 0)
     {
-      //printf("Waiting for child to die, background\n");
-      //waitpid(0,NULL,0);
+      printf("Waiting for child to die, background, ppid %d\n",getpid());
+      waitpid(0,NULL,0);
       return 0;    
     }      
     else if(strcmp(cmd->sep,SEQSEP) == 0)
-    {
-      
+    {     
         
       while(1)
       {
@@ -249,24 +251,21 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   // Child
   else if(pid == 0)
   {
-    setpgid(getpid(),getppid());
     if(strcmp(cmd->sep,CONSEP) == 0)
     {
      // printf("BG Child %d\n", getpid());
       fclose(stdout);
       fclose(stderr);
-      ExecuteSingleCommand(tokens,cmd);
+      fclose(stdin);
+      ExecuteSingleCommand(tokens,cmd);      
     }
     else if(strcmp(cmd->sep,SEQSEP) == 0)
     {
       //printf("FG Child %d\n", getpid());
       ExecuteSingleCommand(tokens,cmd);
-    }
-
-
-   
-  }
-  
+    }   
+    
+  } 
 
 }
 
