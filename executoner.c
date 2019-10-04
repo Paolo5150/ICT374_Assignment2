@@ -1,5 +1,17 @@
 #include "executoner.h"
 
+int deadChild = 0;
+
+void ChildHandler(int n, siginfo_t* info, void* idk)
+{
+  //printf("Got signal %d by %d\n",info->si_signo, info->si_pid); 
+  deadChild = info->si_pid;
+  /*if(info->si_signo == SIGTTOU)
+  {
+    tcsetpgrp(STDOUT_FILENO,getpid());
+  }*/
+}
+
 int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
 {
 
@@ -19,6 +31,7 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
   
    if (pid > 0)
   {
+
     if ((pid2=fork()) < 0)
     {
     printf("Error while forking in pipe execution\n");
@@ -37,10 +50,10 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
       exit(0); 
 
     }
-    else
+    else if (pid2 > 0)
     {
       close(p[0]);
-      close(p[1]);
+      close(p[1]);      
 
       waitpid(0,NULL,0);
       waitpid(0,NULL,0);
@@ -50,7 +63,7 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
     
   }
 
-  if (pid == 0)  
+  else if (pid == 0)  
   {
     // printf("\nPID %d, executing exec1, first %s, arg %s\n",getpid(),tokens[leftCmd->first],leftCmd->argv[1]);
     // Write only
@@ -105,7 +118,7 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
   if(newArgs != NULL)
   {    
     execv (tokens[cmd->first], newArgs);
-   // printf("Failed!");
+    printf("Failed!");
 
   } 
   else
@@ -117,13 +130,15 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
     
 }
 
+
+
+
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
 {
+  //printf("executing %s, pid %d\n", tokens[cmd->first],getpid());
   int pid;
 
-  //Spawn process
-  // If command has '&', remove stdout to screen, parent won't wait
-  // If command has '>' or '<', change process stdout or stdin
+
  if ((pid=fork()) < 0)
   {
     printf("Error while forking in pipe execution\n");
@@ -133,18 +148,50 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   // Parent
   if (pid > 0)
   {
-    //if '&', don't wait for child process
-    //if ';' wait and then return for next command
+
+    if(strcmp(cmd->sep,CONSEP) == 0)
+    {
+      //printf("Waiting for child to die, background\n");
+      //waitpid(0,NULL,0);
+      return 0;    
+    }      
+    else if(strcmp(cmd->sep,SEQSEP) == 0)
+    {
+      
+        
+      while(1)
+      {
+        int i = waitpid(0,NULL,0);
+       // printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
+        if(pid == deadChild)
+          {
+            deadChild = 0;
+            break;
+          } 
+        
+        sleep(0.1);
+      }     
+      //printf("Returned here\n");
+      return 0;
+    }
   }
   // Child
   else if(pid == 0)
   {
-    // Check if cmd->separator is '&'
-       // If it is, detached stdout (no print to screen) - I'll get up to this point
-       // However, if here is a '>', stdout shout go to file (filename should be argument index 1) so exec will output there
-       // Also check for '<', which means read from that file
+    setpgid(getpid(),getppid());
+    if(strcmp(cmd->sep,CONSEP) == 0)
+    {
+     // printf("BG Child %d\n", getpid());
+      fclose(stdout);
+      fclose(stderr);
+      ExecuteSingleCommand(tokens,cmd);
+    }
+    else if(strcmp(cmd->sep,SEQSEP) == 0)
+    {
+      //printf("FG Child %d\n", getpid());
+      ExecuteSingleCommand(tokens,cmd);
+    }
 
-   // If separator is ';', i guess execute as normal (and of course check for '<' '>')
 
    
   }
