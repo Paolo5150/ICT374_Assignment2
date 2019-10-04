@@ -225,8 +225,8 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
 
     if(strcmp(cmd->sep,CONSEP) == 0)
     {
-      printf("Waiting for child to die, background, ppid %d\n",getpid());
-      waitpid(0,NULL,0);
+      //printf("Waiting for child to die, background, ppid %d\n",getpid());
+      //waitpid(0,NULL,0);
       return 0;    
     }      
     else if(strcmp(cmd->sep,SEQSEP) == 0)
