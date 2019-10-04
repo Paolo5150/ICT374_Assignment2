@@ -4,13 +4,10 @@ int deadChild = 0;
 
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
-  //printf("Got signal %d by %d\n",info->si_signo, info->si_pid); 
+  //printf("Got signal %d by %d, parent: %d\n",info->si_signo, info->si_pid,getpid()); 
 
   deadChild = info->si_pid;
-  /*if(info->si_signo == SIGTTOU)
-  {
-    tcsetpgrp(STDOUT_FILENO,getpid());
-  }*/
+
 }
 
 int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
@@ -45,7 +42,7 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
       close(p[1]);
       dup2(p[0],STDIN_FILENO);
       close(p[0]);  
-      //printf("\nPID %d, executing exec2, first %s, arg %s\n",getpid(),tokens[rightCmd->first],rightCmd->argv[0]);
+
       ExecuteSingleCommand(tokens,rightCmd);
       printf("\nCould not execute command 2..\n"); 
       exit(0); 
@@ -223,15 +220,19 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   if (pid > 0)
   {
 
+    
     if(strcmp(cmd->sep,CONSEP) == 0)
     {
       //printf("Waiting for child to die, background, ppid %d\n",getpid());
-      //waitpid(0,NULL,0);
-      return 0;    
+      waitpid(0,NULL,WNOHANG);
+
+      //printf("Parent returned");
+      return 0;
+    
     }      
     else if(strcmp(cmd->sep,SEQSEP) == 0)
     {     
-        
+
       while(1)
       {
         int i = waitpid(0,NULL,0);
@@ -246,7 +247,7 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
       }     
       //printf("Returned here\n");
       return 0;
-    }
+    }   
   }
   // Child
   else if(pid == 0)
@@ -263,7 +264,7 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
     {
       //printf("FG Child %d\n", getpid());
       ExecuteSingleCommand(tokens,cmd);
-    }   
+    }  
     
   } 
 
