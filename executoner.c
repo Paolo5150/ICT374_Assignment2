@@ -110,21 +110,77 @@ char** IsPath(char* line, char** args,int argc)
 
 
 }
+
+void Redirect(char* tokens[], Command* cmd)
+{
+	for (int i = cmd->first; i <= cmd->last; i++)
+	{
+		if (strcmp(tokens[i], ">") == 0)
+		{
+			if (i + 1 == cmd->last)
+			{
+				RedirectOutput(tokens[i+1]);
+				break;
+			}
+			else
+			{
+				printf("Output Redirection requires single argument!\n");
+				break;
+			}
+		}
+		else
+		{
+			if (strcmp(tokens[i], "<") == 0)
+			{
+				if (i + 1 == cmd->last)
+				{
+					RedirectInput(tokens[i+1]);
+					break;
+				}
+				else
+				{
+					printf("Input Redirection requires single argument!\n");
+					break;
+				}
+			}
+		}
+		
+	}
+}
+
+void RedirectInput(char* inputFilename)
+{
+	int inFileDesc = open(inputFilename, O_RDONLY | O_CREAT, 0666);
+
+	dup2(inFileDesc, STDIN_FILENO);
+}
+
+void RedirectOutput(char* outputFilename)
+{
+	int outFileDesc = open(outputFilename, O_WRONLY | O_CREAT, 0666);
+
+	dup2(outFileDesc, STDOUT_FILENO);
+}
+
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
 {
 
     char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
-  
+
+	//Redirects output/input if necessary
+	Redirect(tokens, cmd);
+	
   if(newArgs != NULL)
   {    
+	
     execv (tokens[cmd->first], newArgs);
-    printf("Failed!");
+    printf("Failed!\n");
 
   } 
   else
   {
     execvp(tokens[cmd->first] ,cmd->argv);
-    printf("Failed!");
+    printf("Failed!\n");
   }
   return 0;
     
