@@ -1,3 +1,3 @@
 #include "command.h"
 
-char** ExecuteWildcard(char* tokens[], Command* cmd);
+char** GetWildcardCommands(char** args, int argc, int* returnSize);

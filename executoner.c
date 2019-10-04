@@ -165,23 +165,34 @@ void RedirectOutput(char* outputFilename)
 
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
 {
-
     char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
+	int arrSize = 0;
 
 	//Redirects output/input if necessary
 	Redirect(tokens, cmd);
-	ExecuteWildcard(tokens, cmd);
-	return 0;
+	
+//	ExecuteWildcard(tokens, cmd);
+	//return 0;
   if(newArgs != NULL)
   {    
-	
-    execv (tokens[cmd->first], newArgs);
+	char** afterWildcard = GetWildcardCommands(newArgs, cmd->argc, &arrSize);
+	if (afterWildcard != NULL)
+		execv (tokens[cmd->first], afterWildcard);
+	else
+		execv (tokens[cmd->first], newArgs);
     printf("Failed!\n");
 
   } 
   else
   {
-    execvp(tokens[cmd->first] ,cmd->argv);
+	printf("IF I DON'T ADD THIS LINE THE COMMAND OUTPUT DOESNT PRINT\n");
+	char** afterWildcard = GetWildcardCommands(cmd->argv, cmd->argc, &arrSize);
+	printf("\n");
+	int i = 0;
+	if (afterWildcard != NULL)
+		execvp(tokens[cmd->first] ,afterWildcard);
+	else
+    		execvp(tokens[cmd->first] ,cmd->argv);
     printf("Failed!\n");
   }
   return 0;
@@ -196,7 +207,7 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   //printf("executing %s, pid %d\n", tokens[cmd->first],getpid());
   int pid;
 
-
+	fflush(stdout);
  if ((pid=fork()) < 0)
   {
     printf("Error while forking in pipe execution\n");
