@@ -1,4 +1,5 @@
 #include "executoner.h"
+#include "wildcard.h"
 
 int deadChild = 0;
 
@@ -169,7 +170,8 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
 
 	//Redirects output/input if necessary
 	Redirect(tokens, cmd);
-	
+	ExecuteWildcard(tokens, cmd);
+	return 0;
   if(newArgs != NULL)
   {    
 	
