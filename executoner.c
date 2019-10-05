@@ -4,76 +4,140 @@ int deadChild = 0;
 
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
-  //printf("Got signal %d by %d, parent: %d\n",info->si_signo, info->si_pid,getpid()); 
+ // printf("Got signal %d by %d, parent: %d\n",info->si_signo, info->si_pid,getpid()); 
 
   deadChild = info->si_pid;
 
 }
 
-int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
+int CheckForWait(Command* cmd, int pid)
+{
+  if(strcmp(cmd->sep,CONSEP) == 0)
+    {
+      //printf("Waiting for child to die, background, ppid %d\n",getpid());
+      waitpid(0,NULL,WNOHANG);
+
+      //printf("Parent returned");
+      return 0;
+    
+    }      
+    else if(strcmp(cmd->sep,SEQSEP) == 0)
+    {     
+
+      while(1)
+      {
+        int i = waitpid(0,NULL,0);
+        //printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
+        if(pid == deadChild)
+          {
+            deadChild = 0;
+            break;
+          } 
+        
+        sleep(1.0);
+      }     
+      //printf("Returned here\n");
+      return 0;
+    }   
+}
+
+int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
 {
 
-  int p[2], pid, pid2;
-
-  if (pipe(p) < 0)
+  // Create pipes
+  int p[20][2];
+  int pipeNum = size - 1;
+  int pipeIndex = 0;
+  for(int i=0; i< pipeNum ; i++)
   {
-    printf("Error while creating pipe\n");
-    return -1;
+    if(pipe(p[i]) < 0)
+    {
+      printf("Failed to create pipe :(\n");
+      exit(0);
+    }
   }
 
-  if ((pid=fork()) < 0)
+  for(int i=0; i< size; i++)
   {
-    printf("Error while forking in pipe execution\n");
-    return -1;
-  }
-  
-   if (pid > 0)
-  {
-
-    if ((pid2=fork()) < 0)
+    int pid = fork();
+    if(pid < 0)
     {
-    printf("Error while forking in pipe execution\n");
-    return -1;
+      printf("failed to fork :(\n");
+      exit(0);
     }
-
-    if (pid2 == 0)  
-    {
-      // Read only
-      close(p[1]);
-      dup2(p[0],STDIN_FILENO);
-      close(p[0]);  
-
-      ExecuteSingleCommand(tokens,rightCmd);
-      printf("\nCould not execute command 2..\n"); 
-      exit(0); 
-
-    }
-    else if (pid2 > 0)
-    {
-      close(p[0]);
-      close(p[1]);      
-
-      waitpid(0,NULL,0);
-      waitpid(0,NULL,0);
-      return 0;
-    }
-
     
-  }
+    if(pid == 0)
+    {
+      //printf("Spawn child %d, I: %d, size: %d\n", getpid(),i,size);
+      // If not last command, set up to write
+      if(i == 0)
+        {
+          //printf("First cmd using pipe %d\n",pipeIndex);
+          close(p[pipeIndex][0]);
+          dup2(p[pipeIndex][1],STDOUT_FILENO);
+          close(p[pipeIndex][1]); 
+          
+        }       
+      // If it's last command, close writing end
+      else if(i == size - 1)
+      {
+        //printf("Lst cmd using pipe %d\n",pipeIndex);
+        close(p[pipeIndex][1]);
+        dup2(p[pipeIndex][0],STDIN_FILENO);
+        close(p[pipeIndex][0]);
+        
+        // If background process, close stdout to terminal
+        if(strcmp(pipedCmds[i].sep,CONSEP) == 0)
+        {
+        // printf("BG Child %d\n", getpid());
+          fclose(stdout);
+          fclose(stderr);    
+        }  
+     
+      }
+      else
+      {
+          close(p[pipeIndex][1]);
+          dup2(p[pipeIndex][0],STDIN_FILENO);
+          close(p[pipeIndex][0]); 
 
-  else if (pid == 0)  
-  {
-    // printf("\nPID %d, executing exec1, first %s, arg %s\n",getpid(),tokens[leftCmd->first],leftCmd->argv[1]);
-    // Write only
-    close(p[0]);
-    dup2(p[1],STDOUT_FILENO);
-    close(p[1]);   
- 
-    ExecuteSingleCommand(tokens,leftCmd);
-    printf("\nCould not execute command 1..\n"); 
-     exit(0);
+          close(p[pipeIndex+1][0]);
+          dup2(p[pipeIndex+1][1],STDOUT_FILENO);
+          close(p[pipeIndex+1][1]); 
+      }
+
+      ExecuteSingleCommand(tokens,&pipedCmds[i]);
+      exit(0);     
+    }
+    else if(pid > 0)
+    { 
+      // If first command, wait before proceeding
+      if(i == 0)
+      {
+         waitpid(0,NULL,0);
+      }
+      // If last command, check for '&' or ';'
+      else if(i == size - 1)
+      {
+        close(p[pipeIndex][0]);
+        close(p[pipeIndex][1]);
+        CheckForWait(&pipedCmds[i],pid);
+      }
+      // If "middle" command(s), wait before proceeding
+      else 
+      {
+          close(p[pipeIndex][0]);
+          close(p[pipeIndex][1]);
+          waitpid(0,NULL,0);
+          //printf("Parent, middle CMD\n");
+      }      
+      
+    }  
+    if(i > 0 && pipeIndex < pipeNum)
+    {
+      pipeIndex++;
+    }   	 
   }
-  return 0;
 }
 
 char** IsPath(char* line, char** args,int argc)
@@ -104,9 +168,6 @@ char** IsPath(char* line, char** args,int argc)
  
     return newArgs;
   }
-
-
-
 }
 
 void Redirect(char* tokens[], Command* cmd, int* oldOut, int* oldIn)
@@ -219,35 +280,8 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   // Parent
   if (pid > 0)
   {
-
+    CheckForWait(cmd,pid);   
     
-    if(strcmp(cmd->sep,CONSEP) == 0)
-    {
-      //printf("Waiting for child to die, background, ppid %d\n",getpid());
-      waitpid(0,NULL,WNOHANG);
-
-      //printf("Parent returned");
-      return 0;
-    
-    }      
-    else if(strcmp(cmd->sep,SEQSEP) == 0)
-    {     
-
-      while(1)
-      {
-        int i = waitpid(0,NULL,0);
-       // printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
-        if(pid == deadChild)
-          {
-            deadChild = 0;
-            break;
-          } 
-        
-        sleep(0.1);
-      }     
-      //printf("Returned here\n");
-      return 0;
-    }   
   }
   // Child
   else if(pid == 0)
@@ -258,14 +292,9 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
       fclose(stdout);
       fclose(stderr);
       fclose(stdin);
-      ExecuteSingleCommand(tokens,cmd);      
+          
     }
-    else if(strcmp(cmd->sep,SEQSEP) == 0)
-    {
-      //printf("FG Child %d\n", getpid());
-      ExecuteSingleCommand(tokens,cmd);
-    }  
-    
+    ExecuteSingleCommand(tokens,cmd);      
   } 
 
 }

@@ -52,12 +52,7 @@ int main()
   InitializeScreen(&screen);
   SplashScreen();
   SetUpSignal(&validCommand);
-  struct sigaction childDone;
-		
-  childDone.sa_flags = SA_RESTART;
-  childDone.sa_flags |= SA_SIGINFO;
-  childDone.sa_sigaction = ChildHandler;
-  sigaction(SIGCHLD,&childDone,NULL);
+
 
   int timeToQuit = 0;
 
@@ -75,7 +70,16 @@ int main()
     
      //This will remove the '\n' at the end, replacing it with a '\0' 
      line[strcspn(line,"\n")] = '\0';
-
+     
+     //Check for \t
+     for( int i=0; i< strlen(line); i++)
+     {
+       if(line[i] == '\t')
+       {
+         line[i] = ' ';
+       }
+       
+     }
  
      
      // If a signal was caught, validCommand will be set to 0
@@ -104,17 +108,36 @@ int main()
         for(int i=0; i< cms; i++)
         {
 
-          // Check for pipe, need to revisit
+          // Check for pipe
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
           {
-           // ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
-          }
+            // If the command has pipe, batch the cmd and all subsequent commands if they have a pipe (including last one with no pipe)
+            Command* pipeCommands[MAX_COMMANDS];
+            int index = 0;
+            int isPipe = 1;            
+            for(int j=i; j< cms && isPipe; j++)
+            {
+              if(strcmp(commands[j].sep ,PIPESEP) == 0)
+              {
+                pipeCommands[index] = &commands[j];
+                index++;
+                i++;
+              }
+              else
+                isPipe = 0;              
+            }     
+          pipeCommands[index] = &commands[i]; 
+          index++;   
+         // DEBUG_printCommands(index,*pipeCommands);          
+         ExecutePipedCommand(tokens,*pipeCommands,index);
+         }
          else
-             ExecuteProcessedSingleCommand(tokens,&commands[i]);
+         {
 
-        }
-     // printf("For loop ended, btw cms were %d\n",cms);
-    
+            ExecuteProcessedSingleCommand(tokens,&commands[i]);
+         }
+         
+        }    
      }
 
   }

@@ -22,7 +22,7 @@ int RedirectOutput(char* outputFilename);
 void RedirectOutputFD(int fd);
 int ExecuteSingleCommand(char* tokens[],Command* cmd);
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd);
-int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd);
+int ExecutePipedCommand(char* tokens[],Command* pipedCmd, int size);
 
 void ChildHandler(int n, siginfo_t* info, void* idk);
 
