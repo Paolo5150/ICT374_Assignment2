@@ -43,12 +43,7 @@ int CheckForWait(Command* cmd, int pid)
 
 int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
 {
- /* printf("Batch START\n");
-  for(int i=0; i< size; i++)
-  {
-    printf("\tCmd %s\n",tokens[pipedCmds[i].first]);
-  }
- printf("Batch END\n");*/
+
   // Create pipes
   int p[20][2];
   int pipeNum = size - 1;
@@ -114,29 +109,27 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
       exit(0);     
     }
     else if(pid > 0)
-    {
+    { 
+      // If first command, wait before proceeding
       if(i == 0)
       {
          waitpid(0,NULL,0);
-         //printf("Parent, first CMD\n");
       }
+      // If last command, check for '&' or ';'
       else if(i == size - 1)
       {
         close(p[pipeIndex][0]);
         close(p[pipeIndex][1]);
-        //printf("Parent, last CMD\n");
         CheckForWait(&pipedCmds[i],pid);
-        //printf("Parent, last CMD DONE WAITING\n");
       }
+      // If "middle" command(s), wait before proceeding
       else 
       {
           close(p[pipeIndex][0]);
           close(p[pipeIndex][1]);
           waitpid(0,NULL,0);
           //printf("Parent, middle CMD\n");
-      }  
-      
-      
+      }      
       
     }  
     if(i > 0 && pipeIndex < pipeNum)
