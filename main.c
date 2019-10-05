@@ -52,12 +52,7 @@ int main()
   InitializeScreen(&screen);
   SplashScreen();
   SetUpSignal(&validCommand);
-  struct sigaction childDone;
-		
-  childDone.sa_flags = SA_RESTART;
-  childDone.sa_flags |= SA_SIGINFO;
-  childDone.sa_sigaction = ChildHandler;
-  sigaction(SIGCHLD,&childDone,NULL);
+
 
   int timeToQuit = 0;
 
