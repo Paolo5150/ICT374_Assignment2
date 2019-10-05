@@ -99,19 +99,35 @@ int main()
         for(int i=0; i< cms; i++)
         {
 
-          // Check for pipe, need to revisit
+          // Check for pipe
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
           {
-            ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
-            i++;
-          }
+            // If the command has pipe, batch the cmd and all subsequent commands if they have a pipe (including last one with no pipe)
+            Command* pipeCommands[MAX_COMMANDS];
+            int index = 0;            
+            for(int j=i; j< cms; j++)
+            {
+              if(strcmp(commands[j].sep ,PIPESEP) == 0)
+              {
+                pipeCommands[index] = &commands[j];
+                index++;
+                i++;
+              }
+              //ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
+              
+            }     
+          pipeCommands[index] = &commands[i]; 
+          index++;   
+         // DEBUG_printCommands(index,*pipeCommands);          
+         ExecutePipedCommand(tokens,*pipeCommands,index);
+         }
          else
-             ExecuteProcessedSingleCommand(tokens,&commands[i]);
+         {
 
-         //printf("For loop next cycle");
-        }
-     //printf("For loop ended, btw cms were %d\n",cms);
-    
+            ExecuteProcessedSingleCommand(tokens,&commands[i]);
+         }
+         
+        }    
      }
 
   }

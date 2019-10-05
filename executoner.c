@@ -4,7 +4,7 @@ int deadChild = 0;
 
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
-  //printf("Got signal %d by %d, parent: %d\n",info->si_signo, info->si_pid,getpid()); 
+ // printf("Got signal %d by %d, parent: %d\n",info->si_signo, info->si_pid,getpid()); 
 
   deadChild = info->si_pid;
 
@@ -27,7 +27,7 @@ int CheckForWait(Command* cmd, int pid)
       while(1)
       {
         int i = waitpid(0,NULL,0);
-       // printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
+        //printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
         if(pid == deadChild)
           {
             deadChild = 0;
@@ -41,10 +41,75 @@ int CheckForWait(Command* cmd, int pid)
     }   
 }
 
-int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
+int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
 {
+  // Create pipes
+  int p[20][2];
+ /* for(int i=0; i< size - 1; i++)
+  {
+    if(pipe(p[i]) < 0)
+    {
+      printf("Failed to create pipe :(\n");
+      exit(0);
+    }
+  }*/
 
-  int p[2], pid, pid2;
+  if(pipe(p[0]) < 0)
+    {
+      printf("Failed to create pipe :(\n");
+      exit(0);
+    }
+  for(int i=0; i< size; i++)
+  {
+    int pid = fork();
+    if(pid < 0)
+    {
+      printf("failed to fork :(\n");
+      exit(0);
+    }
+    
+    if(pid == 0)
+    {
+      //printf("Spawn child %d, I: %d, size: %d\n", getpid(),i,size);
+      // If not last command, set up to write
+      if(i == 0)
+        {
+          close(p[0][0]);
+          dup2(p[0][1],STDOUT_FILENO);
+          close(p[0][1]); 
+          ExecuteSingleCommand(tokens,&pipedCmds[i]);
+        }       
+      // If it's last command, close writing end
+      else if(i == size - 1)
+      {
+        close(p[0][1]);
+        dup2(p[0][0],STDIN_FILENO);
+        close(p[0][0]);  
+        if(strcmp(pipedCmds[i].sep,CONSEP) == 0)
+        {
+          fclose(stdout);
+          fclose(stderr);
+          fclose(stdin);          
+        }
+        ExecuteSingleCommand(tokens,&pipedCmds[i]);
+      }
+      
+      exit(0);     
+    }
+    else if(pid > 0)
+    {
+      if(i == size - 1)
+      {
+        close(p[0][0]);
+        close(p[0][1]);
+        CheckForWait(&pipedCmds[i],pid);
+      }  
+    }  
+  }
+
+ 
+
+/* int p[2], pid, pid2;
 
   if (pipe(p) < 0)
   {
@@ -103,7 +168,7 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
     printf("\nCould not execute command 1..\n"); 
 
   }
-  return 0;
+  return 0;*/
 }
 
 char** IsPath(char* line, char** args,int argc)
