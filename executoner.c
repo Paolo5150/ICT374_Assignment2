@@ -75,8 +75,6 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
       close(p[0]);  
 
       ExecuteSingleCommand(tokens,rightCmd);
-      exit(0); 
-
     }
     // Parent
     else if (pid2 > 0)
@@ -91,7 +89,6 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
   // Frist child
   else if (pid == 0)  
   {
-     //printf("\nPID %d, executing exec1, first %s, arg %s\n",getpid(),tokens[leftCmd->first],leftCmd->argv[1]);
     // Write only
     close(p[0]);
     dup2(p[1],STDOUT_FILENO);
@@ -99,7 +96,7 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
  
     ExecuteSingleCommand(tokens,leftCmd);
     printf("\nCould not execute command 1..\n"); 
-     exit(0);
+
   }
   return 0;
 }
