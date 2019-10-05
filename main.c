@@ -70,7 +70,16 @@ int main()
     
      //This will remove the '\n' at the end, replacing it with a '\0' 
      line[strcspn(line,"\n")] = '\0';
-
+     
+     //Check for \t
+     for( int i=0; i< strlen(line); i++)
+     {
+       if(line[i] == '\t')
+       {
+         line[i] = ' ';
+       }
+       
+     }
  
      
      // If a signal was caught, validCommand will be set to 0
