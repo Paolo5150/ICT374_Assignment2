@@ -113,8 +113,9 @@ int main()
           {
             // If the command has pipe, batch the cmd and all subsequent commands if they have a pipe (including last one with no pipe)
             Command* pipeCommands[MAX_COMMANDS];
-            int index = 0;            
-            for(int j=i; j< cms; j++)
+            int index = 0;
+            int isPipe = 1;            
+            for(int j=i; j< cms && isPipe; j++)
             {
               if(strcmp(commands[j].sep ,PIPESEP) == 0)
               {
@@ -122,8 +123,8 @@ int main()
                 index++;
                 i++;
               }
-              //ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
-              
+              else
+                isPipe = 0;              
             }     
           pipeCommands[index] = &commands[i]; 
           index++;   
