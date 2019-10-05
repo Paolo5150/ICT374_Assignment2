@@ -10,6 +10,37 @@ void ChildHandler(int n, siginfo_t* info, void* idk)
 
 }
 
+int CheckForWait(Command* cmd, int pid)
+{
+  if(strcmp(cmd->sep,CONSEP) == 0)
+    {
+      //printf("Waiting for child to die, background, ppid %d\n",getpid());
+      waitpid(0,NULL,WNOHANG);
+
+      //printf("Parent returned");
+      return 0;
+    
+    }      
+    else if(strcmp(cmd->sep,SEQSEP) == 0)
+    {     
+
+      while(1)
+      {
+        int i = waitpid(0,NULL,0);
+       // printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
+        if(pid == deadChild)
+          {
+            deadChild = 0;
+            break;
+          } 
+        
+        sleep(0.1);
+      }     
+      //printf("Returned here\n");
+      return 0;
+    }   
+}
+
 int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
 {
 
@@ -29,41 +60,38 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
   
    if (pid > 0)
   {
-
+    // Spawn second child
     if ((pid2=fork()) < 0)
     {
     printf("Error while forking in pipe execution\n");
     return -1;
     }
-
+    
+    // Second child
     if (pid2 == 0)  
-    {
-      // Read only
+    {     
       close(p[1]);
       dup2(p[0],STDIN_FILENO);
       close(p[0]);  
 
       ExecuteSingleCommand(tokens,rightCmd);
-      printf("\nCould not execute command 2..\n"); 
       exit(0); 
 
     }
+    // Parent
     else if (pid2 > 0)
     {
       close(p[0]);
-      close(p[1]);      
+      close(p[1]);
 
-      waitpid(0,NULL,0);
-      waitpid(0,NULL,0);
+      CheckForWait(rightCmd,pid2);
       return 0;
-    }
-
-    
+    }    
   }
-
+  // Frist child
   else if (pid == 0)  
   {
-    // printf("\nPID %d, executing exec1, first %s, arg %s\n",getpid(),tokens[leftCmd->first],leftCmd->argv[1]);
+     //printf("\nPID %d, executing exec1, first %s, arg %s\n",getpid(),tokens[leftCmd->first],leftCmd->argv[1]);
     // Write only
     close(p[0]);
     dup2(p[1],STDOUT_FILENO);
@@ -219,35 +247,8 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   // Parent
   if (pid > 0)
   {
-
+    CheckForWait(cmd,pid);   
     
-    if(strcmp(cmd->sep,CONSEP) == 0)
-    {
-      //printf("Waiting for child to die, background, ppid %d\n",getpid());
-      waitpid(0,NULL,WNOHANG);
-
-      //printf("Parent returned");
-      return 0;
-    
-    }      
-    else if(strcmp(cmd->sep,SEQSEP) == 0)
-    {     
-
-      while(1)
-      {
-        int i = waitpid(0,NULL,0);
-       // printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
-        if(pid == deadChild)
-          {
-            deadChild = 0;
-            break;
-          } 
-        
-        sleep(0.1);
-      }     
-      //printf("Returned here\n");
-      return 0;
-    }   
   }
   // Child
   else if(pid == 0)

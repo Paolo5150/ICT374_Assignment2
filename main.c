@@ -102,13 +102,15 @@ int main()
           // Check for pipe, need to revisit
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
           {
-           // ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
+            ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
+            i++;
           }
          else
              ExecuteProcessedSingleCommand(tokens,&commands[i]);
 
+         //printf("For loop next cycle");
         }
-     // printf("For loop ended, btw cms were %d\n",cms);
+     //printf("For loop ended, btw cms were %d\n",cms);
     
      }
 
