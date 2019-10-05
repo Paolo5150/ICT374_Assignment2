@@ -86,6 +86,7 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
         dup2(p[pipeIndex][0],STDIN_FILENO);
         close(p[pipeIndex][0]);
         
+        // If background process, close stdout to terminal
         if(strcmp(pipedCmds[i].sep,CONSEP) == 0)
         {
         // printf("BG Child %d\n", getpid());
