@@ -45,20 +45,17 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
 {
   // Create pipes
   int p[20][2];
- /* for(int i=0; i< size - 1; i++)
+  int pipeNum = size - 1;
+  int pipeIndex = 0;
+  for(int i=0; i< pipeNum ; i++)
   {
     if(pipe(p[i]) < 0)
     {
       printf("Failed to create pipe :(\n");
       exit(0);
     }
-  }*/
+  }
 
-  if(pipe(p[0]) < 0)
-    {
-      printf("Failed to create pipe :(\n");
-      exit(0);
-    }
   for(int i=0; i< size; i++)
   {
     int pid = fork();
@@ -74,101 +71,62 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
       // If not last command, set up to write
       if(i == 0)
         {
-          close(p[0][0]);
-          dup2(p[0][1],STDOUT_FILENO);
-          close(p[0][1]); 
-          ExecuteSingleCommand(tokens,&pipedCmds[i]);
+          //printf("First cmd using pipe %d\n",pipeIndex);
+          close(p[pipeIndex][0]);
+          dup2(p[pipeIndex][1],STDOUT_FILENO);
+          close(p[pipeIndex][1]); 
+          
         }       
       // If it's last command, close writing end
       else if(i == size - 1)
       {
-        close(p[0][1]);
-        dup2(p[0][0],STDIN_FILENO);
-        close(p[0][0]);  
+        //printf("Lst cmd using pipe %d\n",pipeIndex);
+        close(p[pipeIndex][1]);
+        dup2(p[pipeIndex][0],STDIN_FILENO);
+        close(p[pipeIndex][0]);
+        
         if(strcmp(pipedCmds[i].sep,CONSEP) == 0)
         {
+        // printf("BG Child %d\n", getpid());
           fclose(stdout);
-          fclose(stderr);
-          fclose(stdin);          
-        }
-        ExecuteSingleCommand(tokens,&pipedCmds[i]);
+          fclose(stderr);    
+        }  
+     
       }
-      
+      else
+      {
+          close(p[pipeIndex][1]);
+          dup2(p[pipeIndex][0],STDIN_FILENO);
+          close(p[pipeIndex][0]); 
+
+          close(p[pipeIndex+1][0]);
+          dup2(p[pipeIndex+1][1],STDOUT_FILENO);
+          close(p[pipeIndex+1][1]); 
+      }
+
+      ExecuteSingleCommand(tokens,&pipedCmds[i]);
       exit(0);     
     }
     else if(pid > 0)
     {
-      if(i == size - 1)
+      if(i == 0)
       {
-        close(p[0][0]);
-        close(p[0][1]);
-        CheckForWait(&pipedCmds[i],pid);
-      }  
-    }  
-  }
-
- 
-
-/* int p[2], pid, pid2;
-
-  if (pipe(p) < 0)
-  {
-    printf("Error while creating pipe\n");
-    return -1;
-  }
-
-  if ((pid=fork()) < 0)
-  {
-    printf("Error while forking in pipe execution\n");
-    return -1;
-  }
-  
-   if (pid > 0)
-  {
-    // Spawn second child
-    if ((pid2=fork()) < 0)
-    {
-    printf("Error while forking in pipe execution\n");
-    return -1;
-    }
-    
-    // Second child
-    if (pid2 == 0)  
-    {     
-      close(p[1]);
-      dup2(p[0],STDIN_FILENO);
-      close(p[0]);  
-      if(strcmp(rightCmd->sep,CONSEP) == 0)
-      {
-        fclose(stdout);
-        fclose(stderr);
-        fclose(stdin);          
+        
       }
-      ExecuteSingleCommand(tokens,rightCmd);
-    }
-    // Parent
-    else if (pid2 > 0)
+      else 
+      {
+          close(p[pipeIndex][0]);
+          close(p[pipeIndex][1]);
+      }  
+      CheckForWait(&pipedCmds[i],pid);
+      
+      
+    }  
+    if(i > 0 && pipeIndex < pipeNum)
     {
-      close(p[0]);
-      close(p[1]);
-
-      CheckForWait(rightCmd,pid2);
-      return 0;
-    }    
+      pipeIndex++;
+    }   	 
   }
-  // Frist child
-  else if (pid == 0)  
-  {
-    // Write only
-    close(p[0]);
-    dup2(p[1],STDOUT_FILENO);
-    close(p[1]);   
- 
-    ExecuteSingleCommand(tokens,leftCmd);
-    printf("\nCould not execute command 1..\n"); 
-
-  }
-  return 0;*/
 }
 
 char** IsPath(char* line, char** args,int argc)
