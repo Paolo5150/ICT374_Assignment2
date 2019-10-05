@@ -73,7 +73,12 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
       close(p[1]);
       dup2(p[0],STDIN_FILENO);
       close(p[0]);  
-
+      if(strcmp(rightCmd->sep,CONSEP) == 0)
+      {
+        fclose(stdout);
+        fclose(stderr);
+        fclose(stdin);          
+      }
       ExecuteSingleCommand(tokens,rightCmd);
     }
     // Parent
@@ -129,9 +134,6 @@ char** IsPath(char* line, char** args,int argc)
  
     return newArgs;
   }
-
-
-
 }
 
 void Redirect(char* tokens[], Command* cmd, int* oldOut, int* oldIn)
@@ -256,14 +258,9 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
       fclose(stdout);
       fclose(stderr);
       fclose(stdin);
-      ExecuteSingleCommand(tokens,cmd);      
+          
     }
-    else if(strcmp(cmd->sep,SEQSEP) == 0)
-    {
-      //printf("FG Child %d\n", getpid());
-      ExecuteSingleCommand(tokens,cmd);
-    }  
-    
+    ExecuteSingleCommand(tokens,cmd);      
   } 
 
 }
