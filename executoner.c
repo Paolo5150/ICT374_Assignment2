@@ -4,12 +4,10 @@ int deadChild = 0;
 
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
-  //printf("Got signal %d by %d\n",info->si_signo, info->si_pid); 
+  //printf("Got signal %d by %d, parent: %d\n",info->si_signo, info->si_pid,getpid()); 
+
   deadChild = info->si_pid;
-  /*if(info->si_signo == SIGTTOU)
-  {
-    tcsetpgrp(STDOUT_FILENO,getpid());
-  }*/
+
 }
 
 int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
@@ -44,7 +42,7 @@ int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd)
       close(p[1]);
       dup2(p[0],STDIN_FILENO);
       close(p[0]);  
-      //printf("\nPID %d, executing exec2, first %s, arg %s\n",getpid(),tokens[rightCmd->first],rightCmd->argv[0]);
+
       ExecuteSingleCommand(tokens,rightCmd);
       printf("\nCould not execute command 2..\n"); 
       exit(0); 
@@ -111,7 +109,7 @@ char** IsPath(char* line, char** args,int argc)
 
 }
 
-void Redirect(char* tokens[], Command* cmd)
+void Redirect(char* tokens[], Command* cmd, int* oldOut, int* oldIn)
 {
 	for (int i = cmd->first; i <= cmd->last; i++)
 	{
@@ -119,7 +117,7 @@ void Redirect(char* tokens[], Command* cmd)
 		{
 			if (i + 1 == cmd->last)
 			{
-				RedirectOutput(tokens[i+1]);
+				*oldOut = RedirectOutput(tokens[i+1]);
 				break;
 			}
 			else
@@ -134,7 +132,7 @@ void Redirect(char* tokens[], Command* cmd)
 			{
 				if (i + 1 == cmd->last)
 				{
-					RedirectInput(tokens[i+1]);
+					*oldIn = RedirectInput(tokens[i+1]);
 					break;
 				}
 				else
@@ -148,18 +146,31 @@ void Redirect(char* tokens[], Command* cmd)
 	}
 }
 
-void RedirectInput(char* inputFilename)
+int RedirectInput(char* inputFilename)
 {
 	int inFileDesc = open(inputFilename, O_RDONLY | O_CREAT, 0666);
-
+	int origFD = dup(STDIN_FILENO);
 	dup2(inFileDesc, STDIN_FILENO);
+	return origFD;
 }
 
-void RedirectOutput(char* outputFilename)
+void RedirectInputFD(int fd)
+{
+	dup2(fd, STDIN_FILENO);
+}
+
+
+int RedirectOutput(char* outputFilename)
 {
 	int outFileDesc = open(outputFilename, O_WRONLY | O_CREAT, 0666);
-
+	int origFD = dup(STDOUT_FILENO);
 	dup2(outFileDesc, STDOUT_FILENO);
+	return origFD;
+}
+
+void RedirectOutputFD(int fd)
+{
+	dup2(fd, STDOUT_FILENO);
 }
 
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
@@ -168,19 +179,23 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
     char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
 
 	//Redirects output/input if necessary
-	Redirect(tokens, cmd);
+	int out = -1;
+	int in = -1;
+	Redirect(tokens, cmd, &out, &in);
 	
   if(newArgs != NULL)
   {    
 	
     execv (tokens[cmd->first], newArgs);
-    printf("Failed!\n");
+    printf("Command not recognized :(\n");
+    exit(0);
 
   } 
   else
   {
     execvp(tokens[cmd->first] ,cmd->argv);
-    printf("Failed!\n");
+    printf("Command not recognized :(\n");
+    exit(0);
   }
   return 0;
     
@@ -205,16 +220,19 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   if (pid > 0)
   {
 
+    
     if(strcmp(cmd->sep,CONSEP) == 0)
     {
-      //printf("Waiting for child to die, background\n");
-      //waitpid(0,NULL,0);
-      return 0;    
+      //printf("Waiting for child to die, background, ppid %d\n",getpid());
+      waitpid(0,NULL,WNOHANG);
+
+      //printf("Parent returned");
+      return 0;
+    
     }      
     else if(strcmp(cmd->sep,SEQSEP) == 0)
-    {
-      
-        
+    {     
+
       while(1)
       {
         int i = waitpid(0,NULL,0);
@@ -229,29 +247,26 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
       }     
       //printf("Returned here\n");
       return 0;
-    }
+    }   
   }
   // Child
   else if(pid == 0)
   {
-    setpgid(getpid(),getppid());
     if(strcmp(cmd->sep,CONSEP) == 0)
     {
      // printf("BG Child %d\n", getpid());
       fclose(stdout);
       fclose(stderr);
-      ExecuteSingleCommand(tokens,cmd);
+      fclose(stdin);
+      ExecuteSingleCommand(tokens,cmd);      
     }
     else if(strcmp(cmd->sep,SEQSEP) == 0)
     {
       //printf("FG Child %d\n", getpid());
       ExecuteSingleCommand(tokens,cmd);
-    }
-
-
-   
-  }
-  
+    }  
+    
+  } 
 
 }
 
