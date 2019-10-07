@@ -1,6 +1,6 @@
 #include "executoner.h"
 
-int deadChild = 0;
+static int deadChild = 0;
 
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
@@ -288,21 +288,4 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   } 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
