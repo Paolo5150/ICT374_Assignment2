@@ -4,8 +4,6 @@ int deadChild = 0;
 
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
- // printf("Got signal %d by %d, parent: %d\n",info->si_signo, info->si_pid,getpid()); 
-
   deadChild = info->si_pid;
 
 }
@@ -14,10 +12,7 @@ int CheckForWait(Command* cmd, int pid)
 {
   if(strcmp(cmd->sep,CONSEP) == 0)
     {
-      //printf("Waiting for child to die, background, ppid %d\n",getpid());
       waitpid(0,NULL,WNOHANG);
-
-      //printf("Parent returned");
       return 0;
     
     }      
@@ -151,7 +146,7 @@ char** IsPath(char* line, char** args,int argc)
     return NULL;
   else
   {
-    // This mess below creates a new set of arguments, copied from the command arguments, except that the first argument is the command with no /
+    // This part below creates a new set of arguments, copied from the command arguments, except that the first argument is the command with no /
     strncpy(cpy,line,strlen(line)+1);
     int t = tokenise(cpy,tks,"/");
     char** newArgs = NULL;
@@ -237,12 +232,12 @@ void RedirectOutputFD(int fd)
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
 {
 
-    char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
+  char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
 
-	//Redirects output/input if necessary
-	int out = -1;
-	int in = -1;
-	Redirect(tokens, cmd, &out, &in);
+  //Redirects output/input if necessary
+  int out = -1;
+  int in = -1;
+  Redirect(tokens, cmd, &out, &in);
 	
   if(newArgs != NULL)
   {    
@@ -263,13 +258,9 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
 }
 
 
-
-
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
 {
-  //printf("executing %s, pid %d\n", tokens[cmd->first],getpid());
   int pid;
-
 
  if ((pid=fork()) < 0)
   {
@@ -288,7 +279,6 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   {
     if(strcmp(cmd->sep,CONSEP) == 0)
     {
-     // printf("BG Child %d\n", getpid());
       fclose(stdout);
       fclose(stderr);
       fclose(stdin);
