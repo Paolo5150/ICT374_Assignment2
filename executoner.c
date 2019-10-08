@@ -126,33 +126,16 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
   }
 }
 
-char** IsPath(char* line, char** args,int argc)
+int IsPath(char* line, char** tks)
 {
-  char cpy[100];
-  strncpy(cpy,line,strlen(line)+1);
-  char* tks[10];
-  int t = tokenise(cpy,tks,"/");
+  
+  int t = tokenise(line,tks,"/");
 
   if(t == 2)
-    return NULL;
+    return 0;
   else
   {
-    // This part below creates a new set of arguments, copied from the command arguments, except that the first argument is the command with no /
-    strncpy(cpy,line,strlen(line)+1);
-    int t = tokenise(cpy,tks,"/");
-    char** newArgs = NULL;
-    newArgs = (char **) realloc(newArgs, sizeof(char *) * argc);
-    newArgs[0] = (char *) realloc(newArgs[0], sizeof(char) * strlen(tks[t-2]));
-    strcpy(newArgs[0],tks[t-2]);
-    int i = 1;
-    for(; i< argc; i++)
-    {
-      newArgs[i] = (char *) realloc(newArgs[i], sizeof(char) * strlen(args[i]));
-      strcpy(newArgs[i],args[i]);
-    }
-    newArgs[i] = NULL;
- 
-    return newArgs;
+    return t;
   }
 }
 
@@ -222,18 +205,25 @@ void RedirectOutputFD(int fd)
 
 int ExecuteSingleCommand(char* tokens[],Command* cmd)
 {
+  // Save original command to when tokenizing, it won't be compromised
+  char orig[100];
+  strcpy(orig,tokens[cmd->first]);
 
-  char** newArgs = IsPath(tokens[cmd->first] ,cmd->argv,cmd->argc);
+  // Check if there are tokens (if input is a path eg. /bin/ls)
+  char* tks[10];
+  int p = IsPath(tokens[cmd->first] ,tks);
 
   //Redirects output/input if necessary
   int out = -1;
   int in = -1;
   Redirect(tokens, cmd, &out, &in);
 	
-  if(newArgs != NULL)
+  if(p != 0)
   {    
-	
-    execv (tokens[cmd->first], newArgs);
+    tokens[cmd->first] = orig; 		// Command set to original value (eg. "/bin/ls")
+    strcpy(cmd->argv[0],tks[p-2]);	// First Argument set to tokenized value (eg. "ls")
+
+    execv (tokens[cmd->first], cmd->argv);
     printf("Command not recognized :(\n");
     exit(0);
 

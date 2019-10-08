@@ -11,7 +11,8 @@
 #include "screen.h"
 #include "command.h"
 
-char** IsPath(char* line, char** args, int argc);
+
+int IsPath(char* line, char** tks);
 //"Public" method for determining if redirect is applicable and applies it, oldout and oldin can be used to determine whether a redirection occurred
 void Redirect(char* tokens[], Command* cmd, int* oldOut, int* oldIn);
 //Redirects the stdin, called by Redirect
