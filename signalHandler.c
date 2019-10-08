@@ -5,9 +5,8 @@
 
 void CatchSignal(int signalNumber)
 {
-   *setValidCommand = 0;
-   
-   fseek(stdin,0,SEEK_END);
+   // Set validCommand to false so the line written won't make it into the toknizer in main.c
+   *setValidCommand = 0;   
 }
 
 void SetUpSignal(int* validCommand)
@@ -18,7 +17,7 @@ void SetUpSignal(int* validCommand)
 	act.sa_flags = 0;
 	act.sa_handler = CatchSignal;
 
-	//sigaction(SIGINT, &act, NULL);
+	sigaction(SIGINT, &act, NULL);
 	sigaction(SIGQUIT, &act, NULL);
 	sigaction(SIGKILL, &act, NULL);
 

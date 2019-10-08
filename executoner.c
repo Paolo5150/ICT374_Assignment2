@@ -100,25 +100,22 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
     }
     else if(pid > 0)
     { 
-      // If first command, wait before proceeding
+      
       if(i == 0)
       {
-         waitpid(-1,NULL,WNOHANG);
+         
       }
       // If last command, check for '&' or ';'
       else if(i == size - 1)
       {
         close(p[pipeIndex][0]);
         close(p[pipeIndex][1]);
-        CheckForWait(&pipedCmds[i],pid);
-      }
-      // If "middle" command(s), wait before proceeding
+        CheckForWait(&pipedCmds[i],pid);        
+      }     
       else 
       {
           close(p[pipeIndex][0]);
           close(p[pipeIndex][1]);
-          waitpid(-1,NULL,WNOHANG);
-          //printf("Parent, middle CMD\n");
       }      
       
     }  
