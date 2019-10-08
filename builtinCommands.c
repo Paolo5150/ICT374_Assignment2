@@ -36,15 +36,19 @@ int CheckBuiltinCommand(char* tokens[],Command* commands, Screen* screen)
     }
     else if(strcmp(tokens[commands[0].first],CHANGEDIR_COMMAND) == 0)
     {
-	if(commands[0].argv[1] == NULL)      
- 		printf("No argument provided!\n");
+	char* folder = NULL;
+	if(commands[0].argv[1] == NULL || strcmp(commands[0].argv[1],"~")==0)      
+ 	{
+		folder = getenv("HOME");        
+	}
 	else
 	{
-		if(chdir(commands[0].argv[1]) != 0)
- 		{
-   		printf("Error while changing directory (argument may be invalid)\n");
- 		}
+	  folder = commands[0].argv[1];
 	}
+	if(chdir(folder) != 0)
+ 	{
+   	  printf("Error while changing directory (argument may be invalid)\n");
+ 	}
 	ret = 0; 
     }
 
