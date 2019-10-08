@@ -31,31 +31,41 @@ char** GetWildcardCommands(char** args, int argc, int* returnSize)
 				//Add any arguments since the last wildcard
 				for (int k = newArgsIndex, l = lastWildcardIndex + 1; k < newArgsSize; k++, l++)
 				{
-					newArgs[k] = (char*) malloc(sizeof(char));
-					newArgs[k] = (char*) realloc(newArgs[k], sizeof(char) * strlen(args[l]));
-					strcpy(newArgs[k], args[l]);
+					newArgs[k] = args[l];
 				}
+				
 				newArgsIndex = newArgsSize;
 
 				glob_t variants;
-				glob(args[i], GLOB_DOOFFS, NULL, &variants);
-				newArgsSize += variants.gl_pathc; 
-				newArgs = (char**) realloc(newArgs, sizeof(char *) * newArgsSize);
-				//Add the path arguments found by glob to the return arguments
-				for (int k = newArgsIndex; k < newArgsIndex + variants.gl_pathc; k++)
+				int globReturn = glob(args[i], 0, NULL, &variants);
+				if (globReturn == GLOB_ABORTED)
+					printf("GLOB ABORTED\n");
+				if (globReturn == GLOB_NOMATCH)
+					printf("GLOB NOMATCH\n");
+				if (globReturn == GLOB_NOSPACE)
+					printf("GLOB NOSPACE\n");
+				if (globReturn != GLOB_ABORTED | GLOB_NOMATCH | GLOB_NOSPACE)
 				{
-					newArgs[k] = (char*) malloc(sizeof(char));
-					newArgs[k] = (char*) realloc(newArgs[k], sizeof(char) * strlen(variants.gl_pathv[k - newArgsIndex]));
-					strcpy(newArgs[k], variants.gl_pathv[k - newArgsIndex]);
+					newArgsSize += variants.gl_pathc; 
+					newArgs = (char**) realloc(newArgs, sizeof(char *) * newArgsSize);
+					//Add the path arguments found by glob to the return arguments
+					for (int k = newArgsIndex; k < newArgsIndex + variants.gl_pathc; k++)
+					{
+						newArgs[k] = (char*) malloc(sizeof(char));
+						newArgs[k] = (char*) realloc(newArgs[k], sizeof(char) * strlen(variants.gl_pathv[k - newArgsIndex]));
+						strcpy(newArgs[k], variants.gl_pathv[k - newArgsIndex]);
+					}
+					
+					globfree(&variants);
+					
+					newArgsIndex = newArgsSize;
 				}
-				globfree(&variants);
-				newArgsIndex = newArgsSize;
 				lastWildcardIndex = i;
 				break;
 			}
 		}
 	}
-	
+
 	if (foundWildcard)
 	{
 		//Add remaining command parameters to new arguments
@@ -66,9 +76,7 @@ char** GetWildcardCommands(char** args, int argc, int* returnSize)
 
 			for (int i = lastWildcardIndex + 1, j = newArgsIndex; i < argc; i++, j++)
 			{
-				newArgs[j] = (char*) malloc(sizeof(char));
-				newArgs[j] = (char*) realloc(newArgs[j], sizeof(char) * strlen(args[i]));
-				strcpy(newArgs[j], args[i]);
+				newArgs[j] = args[i];
 			}
 			newArgsIndex = newArgsSize;
 		}
@@ -76,11 +84,9 @@ char** GetWildcardCommands(char** args, int argc, int* returnSize)
 		//Add an additional NULL argument so that the end of the array can be identified
 		newArgsSize += 1;
 		newArgs = (char**) realloc(newArgs, sizeof(char *) * newArgsSize);
-
-		//So that end of array can be identified
 		newArgs[newArgsIndex] = NULL;
 	}
-	
+
 	*returnSize = newArgsSize;
 	 
 	return newArgs;

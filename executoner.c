@@ -171,8 +171,6 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
 	//Redirects output/input if necessary
 	Redirect(tokens, cmd);
 	
-//	ExecuteWildcard(tokens, cmd);
-	//return 0;
   if(newArgs != NULL)
   {    
 	char** afterWildcard = GetWildcardCommands(newArgs, cmd->argc, &arrSize);
@@ -181,13 +179,11 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
 	else
 		execv (tokens[cmd->first], newArgs);
     printf("Failed!\n");
-
   } 
   else
   {
-	printf("IF I DON'T ADD THIS LINE THE COMMAND OUTPUT DOESNT PRINT\n");
 	char** afterWildcard = GetWildcardCommands(cmd->argv, cmd->argc, &arrSize);
-	printf("\n");
+
 	int i = 0;
 	if (afterWildcard != NULL)
 		execvp(tokens[cmd->first] ,afterWildcard);
