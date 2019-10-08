@@ -209,7 +209,7 @@ void RedirectInputFD(int fd)
 
 int RedirectOutput(char* outputFilename)
 {
-	int outFileDesc = open(outputFilename, O_WRONLY | O_CREAT, 0666);
+	int outFileDesc = open(outputFilename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	int origFD = dup(STDOUT_FILENO);
 	dup2(outFileDesc, STDOUT_FILENO);
 	return origFD;
