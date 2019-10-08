@@ -5,6 +5,9 @@ static int deadChild = 0;
 void ChildHandler(int n, siginfo_t* info, void* idk)
 {
   deadChild = info->si_pid;
+  // Avoid zombie apocalypse!
+  while(waitpid(-1,NULL,WNOHANG)>0)
+  {};
 
 }
 
@@ -12,7 +15,7 @@ int CheckForWait(Command* cmd, int pid)
 {
   if(strcmp(cmd->sep,CONSEP) == 0)
     {
-      waitpid(0,NULL,WNOHANG);
+      // If '&', returns immmediately. Pricess will be claimed in ChildHandler      
       return 0;
     
     }      
@@ -21,8 +24,8 @@ int CheckForWait(Command* cmd, int pid)
 
       while(1)
       {
-        int i = waitpid(0,NULL,0);
-        //printf("Waiting for child to die, got %d, deadChild is %d\n",i,deadChild);
+        int i = waitpid(-1,NULL,0);
+        ;
         if(pid == deadChild)
           {
             deadChild = 0;
@@ -79,16 +82,7 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
         //printf("Lst cmd using pipe %d\n",pipeIndex);
         close(p[pipeIndex][1]);
         dup2(p[pipeIndex][0],STDIN_FILENO);
-        close(p[pipeIndex][0]);
-        
-        // If background process, close stdout to terminal
-        if(strcmp(pipedCmds[i].sep,CONSEP) == 0)
-        {
-        // printf("BG Child %d\n", getpid());
-          fclose(stdout);
-          fclose(stderr);    
-        }  
-     
+        close(p[pipeIndex][0]);     
       }
       else
       {
@@ -109,7 +103,7 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
       // If first command, wait before proceeding
       if(i == 0)
       {
-         waitpid(0,NULL,0);
+         waitpid(-1,NULL,WNOHANG);
       }
       // If last command, check for '&' or ';'
       else if(i == size - 1)
@@ -123,7 +117,7 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
       {
           close(p[pipeIndex][0]);
           close(p[pipeIndex][1]);
-          waitpid(0,NULL,0);
+          waitpid(-1,NULL,WNOHANG);
           //printf("Parent, middle CMD\n");
       }      
       
@@ -277,13 +271,6 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   // Child
   else if(pid == 0)
   {
-    if(strcmp(cmd->sep,CONSEP) == 0)
-    {
-      fclose(stdout);
-      fclose(stderr);
-      fclose(stdin);
-          
-    }
     ExecuteSingleCommand(tokens,cmd);      
   } 
 
