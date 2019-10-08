@@ -48,15 +48,12 @@ void DEBUG_printCommands(int cms,Command* commands)
 
 int main()
 {
+  
   InitializeScreen(&screen);
   SplashScreen();
   SetUpSignal(&validCommand);
-  struct sigaction childDone;
-		
-    childDone.sa_flags = 0;
-    childDone.sa_flags |= SA_SIGINFO;
-    childDone.sa_sigaction = ChildHandler;
-    sigaction(SIGCHLD,&childDone,NULL);
+
+
   int timeToQuit = 0;
 
   while(timeToQuit != 1)
@@ -66,21 +63,33 @@ int main()
 
      printf("%s",screen.shellPrompt);
 
+
     if (fgets(line, BUF_SIZE, stdin)) {
       while (!strchr(line, '\n') && fgets(line, BUF_SIZE, stdin)) { }
      }
-
+    
      //This will remove the '\n' at the end, replacing it with a '\0' 
      line[strcspn(line,"\n")] = '\0';
-
+     
+     //Check for \t
+     for( int i=0; i< strlen(line); i++)
+     {
+       if(line[i] == '\t')
+       {
+         line[i] = ' ';
+       }
+       
+     }
+ 
+     
      // If a signal was caught, validCommand will be set to 0
      // Also, check that user did not enter an empty line
-     if(!validCommand || line[0] == '\n' || line[0] == '\0' || strcmp(line,"") == 0)
+    if(!validCommand || line[0] == '\n' || line[0] == '\0' || strcmp(line,"") == 0 )
      {
-        printf("\n");
+        //printf("\n");
      	continue;
      }
-
+     
      // Split into tokens, spearated by empty space
      tokenise(line,tokens," ");
 
@@ -98,17 +107,37 @@ int main()
         
         for(int i=0; i< cms; i++)
         {
-          // Check for pipe, need to revisit
+
+          // Check for pipe
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
           {
-           // ExecutePipedCommand(tokens,&commands[i], &commands[i+1]);
-          }
+            // If the command has pipe, batch the cmd and all subsequent commands if they have a pipe (including last one with no pipe)
+            Command* pipeCommands[MAX_COMMANDS];
+            int index = 0;
+            int isPipe = 1;            
+            for(int j=i; j< cms && isPipe; j++)
+            {
+              if(strcmp(commands[j].sep ,PIPESEP) == 0)
+              {
+                pipeCommands[index] = &commands[j];
+                index++;
+                i++;
+              }
+              else
+                isPipe = 0;              
+            }     
+          pipeCommands[index] = &commands[i]; 
+          index++;   
+         // DEBUG_printCommands(index,*pipeCommands);          
+         ExecutePipedCommand(tokens,*pipeCommands,index);
+         }
          else
-             ExecuteProcessedSingleCommand(tokens,&commands[i]);
+         {
 
-        }
-      //printf("For loop ended! %d\n",getpid());
-    
+            ExecuteProcessedSingleCommand(tokens,&commands[i]);
+         }
+         
+        }    
      }
 
   }

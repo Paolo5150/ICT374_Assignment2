@@ -11,16 +11,19 @@
 #include "screen.h"
 #include "command.h"
 
-char** IsPath(char* line, char** args, int argc);
-//"Public" method for determining if redirect is applicable and applies it
-void Redirect(char* tokens[], Command* cmd);
+
+int IsPath(char* line, char** tks);
+//"Public" method for determining if redirect is applicable and applies it, oldout and oldin can be used to determine whether a redirection occurred
+void Redirect(char* tokens[], Command* cmd, int* oldOut, int* oldIn);
 //Redirects the stdin, called by Redirect
-void RedirectInput(char* inputFilename);
+int RedirectInput(char* inputFilename);
+void RedirectInputFD(int fd);
 //Redirects the stdout, called by Redirect
-void RedirectOutput(char* outputFilename);
+int RedirectOutput(char* outputFilename);
+void RedirectOutputFD(int fd);
 int ExecuteSingleCommand(char* tokens[],Command* cmd);
 int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd);
-int ExecutePipedCommand(char* tokens[],Command* leftCmd, Command* rightCmd);
+int ExecutePipedCommand(char* tokens[],Command* pipedCmd, int size);
 
 void ChildHandler(int n, siginfo_t* info, void* idk);
 
