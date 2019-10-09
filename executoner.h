@@ -11,6 +11,7 @@
 #include "screen.h"
 #include "command.h"
 
+#define MAX_PIPES 1000
 
 int IsPath(char* line, char** tks);
 //"Public" method for determining if redirect is applicable and applies it, oldout and oldin can be used to determine whether a redirection occurred

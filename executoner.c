@@ -24,6 +24,7 @@ int CheckForWait(Command* cmd, int pid)
 
       while(1)
       {
+	//printf("Parent waiting..\n");
         int i = waitpid(-1,NULL,0);
  
         if(i == deadChild)
@@ -32,7 +33,7 @@ int CheckForWait(Command* cmd, int pid)
             break;
           } 
         
-        sleep(1.0);
+        sleep(0.1);
       }     
       //printf("Returned here\n");
       return 0;
@@ -43,7 +44,7 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
 {
 
   // Create pipes
-  int p[20][2];
+  int p[MAX_PIPES][2];
   int pipeNum = size - 1;
   int pipeIndex = 0;
   for(int i=0; i< pipeNum ; i++)
