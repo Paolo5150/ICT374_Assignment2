@@ -1,4 +1,5 @@
 #include "executoner.h"
+#include "wildcard.h"
 
 static int deadChild = 0;
 
@@ -221,17 +222,33 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
 	
   if(p != 0)
   {    
-    tokens[cmd->first] = orig; 		// Command set to original value (eg. "/bin/ls")
-    strcpy(cmd->argv[0],tks[p-2]);	// First Argument set to tokenized value (eg. "ls")
-
-    execv (tokens[cmd->first], cmd->argv);
-    printf("Command not recognized :(\n");
-    exit(0);
-
+	tokens[cmd->first] = orig; 		// Command set to original value (eg. "/bin/ls")
+	strcpy(cmd->argv[0],tks[p-2]);	// First Argument set to tokenized value (eg. "ls")
+	int arrSize;
+	char** afterWildcard = GetWildcardCommands(cmd->argv, cmd->argc, &arrSize);
+	if (afterWildcard != NULL)
+	{
+		execv (tokens[cmd->first], afterWildcard);
+	}
+	else
+	{
+		execv (tokens[cmd->first], cmd->argv);
+	}
+	printf("Command not recognized :(\n");
+	exit(0);
   } 
   else
   {
-    execvp(tokens[cmd->first] ,cmd->argv);
+	int arrSize;
+	char** afterWildcard = GetWildcardCommands(cmd->argv, cmd->argc, &arrSize);
+	if (afterWildcard != NULL)
+	{
+		execvp(tokens[cmd->first] ,afterWildcard);
+	}
+	else
+	{
+		execvp(tokens[cmd->first] ,cmd->argv);
+	}
     printf("Command not recognized :(\n");
     exit(0);
   }
