@@ -26,9 +26,9 @@ int CheckForWait(Command* cmd, int pid)
       while(1)
       {
 	//printf("Parent waiting..\n");
-        waitpid(-1,NULL,0);
+        int i = waitpid(-1,NULL,0);
  
-        if(pid == deadChild)
+        if(pid == deadChild || i <0)
           {
             deadChild = 0;
             break;
