@@ -27,6 +27,7 @@ char** GetWildcardCommands(char** args, int argc, int* returnSize)
 					args[i][j] = '*';
 				foundWildcard = 1;
 				newArgsSize += (i - (lastWildcardIndex + 1));
+				newArgs = NULL;
 				newArgs = (char**) realloc(newArgs, sizeof(char *) * newArgsSize);
 				//Add any arguments since the last wildcard
 				for (int k = newArgsIndex, l = lastWildcardIndex + 1; k < newArgsSize; k++, l++)
@@ -51,8 +52,8 @@ char** GetWildcardCommands(char** args, int argc, int* returnSize)
 					//Add the path arguments found by glob to the return arguments
 					for (int k = newArgsIndex; k < newArgsIndex + variants.gl_pathc; k++)
 					{
-						newArgs[k] = (char*) malloc(sizeof(char));
-						newArgs[k] = (char*) realloc(newArgs[k], sizeof(char) * strlen(variants.gl_pathv[k - newArgsIndex]));
+						newArgs[k] = NULL;
+						newArgs[k] = (char*) realloc(newArgs[k], sizeof(char) * strlen(variants.gl_pathv[k - newArgsIndex])+1);
 						strcpy(newArgs[k], variants.gl_pathv[k - newArgsIndex]);
 					}
 					
