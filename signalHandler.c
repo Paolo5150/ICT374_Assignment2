@@ -24,8 +24,8 @@ void SetUpSignal(int* validCommand)
 	// Set up handler for SIGCHLD signal (see executoner.c)
   	struct sigaction childDone;
 		
-  	childDone.sa_flags = SA_RESTART;
-  	childDone.sa_flags |= SA_SIGINFO;
+  	//childDone.sa_flags = SA_RESTART;
+  	childDone.sa_flags = SA_SIGINFO;
   	childDone.sa_sigaction = ChildHandler;
   	sigaction(SIGCHLD,&childDone,NULL);
 }

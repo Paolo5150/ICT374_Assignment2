@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include "command.h"
 #include "screen.h"
 #include "builtinCommands.h"
@@ -58,15 +59,21 @@ int main()
 
   while(timeToQuit != 1)
   {
+    int again = 1;
+    char* linePtr;
      validCommand = 1; //Will be modified by the signal handler in case we catch a signal
      char line[BUF_SIZE] = ""; //Input buffer
 
      printf("%s",screen.shellPrompt);
 
 
-    if (fgets(line, BUF_SIZE, stdin)) {
-      while (!strchr(line, '\n') && fgets(line, BUF_SIZE, stdin)) { }
-     }
+     while (again) {
+           again = 0;
+           linePtr = fgets(line, BUF_SIZE, stdin);
+           if (linePtr == NULL) 
+               if (errno == EINTR)
+                    again = 1;        // signal interruption, read again
+      }
     
      //This will remove the '\n' at the end, replacing it with a '\0' 
      line[strcspn(line,"\n")] = '\0';
