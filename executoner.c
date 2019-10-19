@@ -7,7 +7,7 @@ void ChildHandler(int n, siginfo_t* info, void* idk)
 {
   deadChild = info->si_pid;
   // Avoid zombie apocalypse!
-  while(waitpid(-1,NULL,WNOHANG)>0)
+  while(waitpid(0,NULL,WNOHANG)>0)
   {};
 
 }
@@ -205,7 +205,7 @@ void RedirectOutputFD(int fd)
 	dup2(fd, STDOUT_FILENO);
 }
 
-int ExecuteSingleCommand(char* tokens[],Command* cmd)
+void ExecuteSingleCommand(char* tokens[],Command* cmd)
 {
   // Save original command to when tokenizing, it won't be compromised
   char orig[100];
@@ -252,23 +252,22 @@ int ExecuteSingleCommand(char* tokens[],Command* cmd)
     printf("Command not recognized :(\n");
     exit(0);
   }
-  return 0;
     
 }
 
 
-int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
+void ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
 {
   int pid;
 
- if ((pid=fork()) < 0)
+  if ((pid=fork()) < 0)
   {
     printf("Error while forking in pipe execution\n");
-    return -1;
+
   }
   
   // Parent
-  if (pid > 0)
+  else if (pid > 0)
   {
     CheckForWait(cmd,pid);   
     
@@ -278,6 +277,5 @@ int ExecuteProcessedSingleCommand(char* tokens[],Command* cmd)
   {
     ExecuteSingleCommand(tokens,cmd);      
   } 
-
 }
 
