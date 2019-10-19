@@ -7,6 +7,7 @@ void SignalHandler(int signalNumber);
 // Set up signalhandlers
 void SetUpSignal(int* validCommand);
 
+// Set to false when user enters CTRL+C and other signals commands
 int* setValidCommand;
 
 #endif

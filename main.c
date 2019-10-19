@@ -140,11 +140,7 @@ int main()
          }
          else
          {
-
-            if(ExecuteProcessedSingleCommand(tokens,&commands[i]) != 0)
-	    {
-              printf("Failed to execute command: %s",tokens[commands[i].first]);
-            }
+            ExecuteProcessedSingleCommand(tokens,&commands[i]);
          }
          
         }    
