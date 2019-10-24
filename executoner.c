@@ -247,8 +247,8 @@ void ExecuteSingleCommand(char* tokens[],Command* cmd)
 	{
 		execvp(tokens[cmd->first] ,cmd->argv);
 	}
-    printf("Command not recognized :(\n");
-    exit(0);
+    	printf("Command not recognized :(\n");
+   	exit(0);
   }
     
 }
