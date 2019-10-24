@@ -10,18 +10,17 @@
 #include "executoner.h"
 
 #define MAX_COMMANDS 100
+#define MAX_TOKENS 1000
 #define BUF_SIZE 1000
 
 // GLOBALS
 Command commands[MAX_COMMANDS];
-char* tokens[1000];
+char* tokens[MAX_TOKENS];
 int validCommand = 0;
 Screen screen;
 
-
-
 // This just prints the list of commands once they are tokenized, use for debugging
-// Currently crashes :)
+
 void DEBUG_printCommands(int cms,Command* commands)
 {
      for(int i=0; i< cms; i++)
@@ -54,7 +53,6 @@ int main()
   SplashScreen();
   SetUpSignal(&validCommand);
 
-
   int timeToQuit = 0;
 
   while(timeToQuit != 1)
@@ -65,7 +63,6 @@ int main()
      char line[BUF_SIZE] = ""; //Input buffer
 
      printf("%s",screen.shellPrompt);
-
 
      while (again) {
            again = 0;
@@ -110,8 +107,6 @@ int main()
 
      if(wasBuiltIn == -1)
      {
-	//DEBUG_printCommands(cms,commands);
-        
         for(int i=0; i< cms; i++)
         {
 
@@ -135,7 +130,7 @@ int main()
             }     
           pipeCommands[index] = &commands[i]; 
           index++;   
-         // DEBUG_printCommands(index,*pipeCommands);          
+       
          ExecutePipedCommand(tokens,*pipeCommands,index);
          }
          else

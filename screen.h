@@ -13,8 +13,13 @@ typedef struct
 
 } Screen;
 
+// Display spash creen
 void SplashScreen();
+
+// Initialize screen parameters
 void InitializeScreen(Screen* screenStruct);
+
+// Change shell prompt (default "%>")
 void ChangeShellPrompt(Screen* screenStruct, char* newPrompt);
 
 
