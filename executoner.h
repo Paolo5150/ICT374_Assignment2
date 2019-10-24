@@ -36,12 +36,12 @@ void ExecuteSingleCommand(char* tokens[],Command* cmd);
 void ExecuteProcessedSingleCommand(char* tokens[],Command* cmd);
 
 // Special function to execute commands joint with the pipe separator
-int ExecutePipedCommand(char* tokens[],Command* pipedCmd, int size);
+void ExecutePipedCommand(char* tokens[],Command* pipedCmd, int size);
 
 // Callback for child process that are terminated
 void ChildHandler(int n, siginfo_t* info, void* idk);
 
 // Determines whether to wait for the process or not
-int CheckForWait(Command* cmd, int pid);
+void CheckForWait(Command* cmd, int pid);
 
 #endif

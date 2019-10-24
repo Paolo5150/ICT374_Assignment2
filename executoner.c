@@ -12,12 +12,12 @@ void ChildHandler(int n, siginfo_t* info, void* idk)
 
 }
 
-int CheckForWait(Command* cmd, int pid)
+void CheckForWait(Command* cmd, int pid)
 {
   if(strcmp(cmd->sep,CONSEP) == 0)
     {
       // If '&', returns immmediately. Pricess will be claimed in ChildHandler      
-      return 0;
+      return;
     
     }      
     else if(strcmp(cmd->sep,SEQSEP) == 0)
@@ -25,7 +25,6 @@ int CheckForWait(Command* cmd, int pid)
 
       while(1)
       {
-	//printf("Parent waiting..\n");
         int i = waitpid(-1,NULL,0);
  
         if(pid == deadChild || i <0)
@@ -36,12 +35,13 @@ int CheckForWait(Command* cmd, int pid)
         
         sleep(0.1);
       }     
-      //printf("Returned here\n");
-      return 0;
+
+      return;
     }   
+return;
 }
 
-int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
+void ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
 {
 
   // Create pipes
@@ -68,11 +68,9 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
     
     if(pid == 0)
     {
-      //printf("Spawn child %d, I: %d, size: %d\n", getpid(),i,size);
       // If not last command, set up to write
       if(i == 0)
         {
-          //printf("First cmd using pipe %d\n",pipeIndex);
           close(p[pipeIndex][0]);
           dup2(p[pipeIndex][1],STDOUT_FILENO);
           close(p[pipeIndex][1]); 
@@ -81,7 +79,6 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
       // If it's last command, close writing end
       else if(i == size - 1)
       {
-        //printf("Lst cmd using pipe %d\n",pipeIndex);
         close(p[pipeIndex][1]);
         dup2(p[pipeIndex][0],STDIN_FILENO);
         close(p[pipeIndex][0]);     
@@ -126,6 +123,7 @@ int ExecutePipedCommand(char* tokens[],Command* pipedCmds, int size)
       pipeIndex++;
     }   	 
   }
+return;
 }
 
 int IsPath(char* line, char** tks)
