@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include "command.h"
 #include "screen.h"
 #include "builtinCommands.h"
@@ -93,6 +94,12 @@ int main()
         //printf("\n");
      	continue;
      }
+
+     // To lower case
+     for(int i=0; i < strlen(line); i++)
+     {
+       line[i] = tolower(line[i]);
+     }
      
      // Split into tokens, spearated by empty space
      tokenise(line,tokens," ");
@@ -105,10 +112,12 @@ int main()
      int wasBuiltIn = CheckBuiltinCommand(tokens, commands,&screen);
      timeToQuit = wasBuiltIn;
 
+
      if(wasBuiltIn == -1)
      {
         for(int i=0; i< cms; i++)
         {
+
 
           // Check for pipe
          if(strcmp(commands[i].sep ,PIPESEP) == 0)
