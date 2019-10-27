@@ -45,7 +45,7 @@ char** GetWildcardCommands(char** args, int argc, int* returnSize)
 					printf("GLOB NOMATCH\n");
 				if (globReturn == GLOB_NOSPACE)
 					printf("GLOB NOSPACE\n");
-				if (globReturn != GLOB_ABORTED | GLOB_NOMATCH | GLOB_NOSPACE)
+				if (globReturn != GLOB_ABORTED && globReturn != GLOB_NOMATCH && globReturn != GLOB_NOSPACE)
 				{
 					newArgsSize += variants.gl_pathc; 
 					newArgs = (char**) realloc(newArgs, sizeof(char *) * newArgsSize);
