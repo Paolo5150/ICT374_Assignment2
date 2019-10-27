@@ -23,5 +23,4 @@ void InitializeScreen(Screen* screenStruct)
 void ChangeShellPrompt(Screen* screenStruct,char* newPrompt)
 {  
   strcpy(screenStruct->shellPrompt,newPrompt);
-  strcat(screenStruct->shellPrompt,">");
 }
