@@ -20,6 +20,7 @@ void SetUpSignal(int* validCommand)
 	sigaction(SIGINT, &act, NULL);
 	sigaction(SIGQUIT, &act, NULL);
 	sigaction(SIGKILL, &act, NULL);
+	sigaction(SIGTSTP, &act, NULL);
 
 	// Set up handler for SIGCHLD signal (see executoner.c)
   	struct sigaction childDone;		
