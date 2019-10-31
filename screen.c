@@ -17,10 +17,11 @@ void SplashScreen()
 void InitializeScreen(Screen* screenStruct)
 {
   (*screenStruct).shellPrompt[0] = '%';
-  (*screenStruct).shellPrompt[1] = '>';
+  (*screenStruct).shellPrompt[1] = ' ';
 }
 
 void ChangeShellPrompt(Screen* screenStruct,char* newPrompt)
 {  
   strcpy(screenStruct->shellPrompt,newPrompt);
+  strcat(screenStruct->shellPrompt," ");
 }
